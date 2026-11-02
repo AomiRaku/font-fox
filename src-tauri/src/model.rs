@@ -182,12 +182,19 @@ pub struct Settings {
     /// 字体列表行是否显示悬停底色。
     #[serde(default)]
     pub row_hover: bool,
+    /// Mica 模式：off / sidebar / full。
+    #[serde(default = "default_mica_mode")]
+    pub mica_mode: String,
     /// 字体禁用方式：`windows`（Inactive Fonts）或 `dynamic`（注销 + 隔离文件）。
     #[serde(default = "default_disable_mode")]
     pub disable_mode: String,
     /// 下次启动时要切换到的禁用方式；空串表示没有待应用变更。
     #[serde(default)]
     pub disable_mode_next: String,
+}
+
+fn default_mica_mode() -> String {
+    "sidebar".to_string()
 }
 
 fn default_disable_mode() -> String {
@@ -216,6 +223,7 @@ impl Default for Settings {
             ignored_update_version: String::new(),
             detail_open: true,
             row_hover: false,
+            mica_mode: default_mica_mode(),
         }
     }
 }

@@ -67,15 +67,15 @@
   /* 表面 */
   --bg: #f7f7f8;
   --bg-raised: #ffffff;
-  --control-bg: #e7e7ec;
-  --control-bg-hover: #dadae1;
-  --control-bg-active: #e0e0e6;
+  --control-bg: rgba(0, 0, 0, 0.06);
+  --control-bg-hover: rgba(0, 0, 0, 0.12);
+  --control-bg-active: rgba(0, 0, 0, 0.09);
   /* 侧栏条目：静止 → 悬停 → 选中 → 按下（逐级加深） */
   --side-hover: rgba(0, 0, 0, 0.045);
   --side-selected: rgba(0, 0, 0, 0.09);
   --side-press: rgba(0, 0, 0, 0.07);
   --focus-bar: rgba(0, 0, 0, 0.55);
-  --seg-thumb-bg: #cfcfd8;
+  --seg-thumb-bg: rgba(0, 0, 0, 0.12);
   --bg-hover: rgba(0, 0, 0, 0.035);
   --bg-active: rgba(0, 0, 0, 0.06);
   --row-alt: rgba(0, 0, 0, 0.03);
@@ -111,11 +111,11 @@
   /* 语义色 */
   /* 开关：开=深色轨道 + 浅色滑块，关=浅色轨道 + 中灰滑块 */
   --switch-track-off: rgba(0, 0, 0, 0.1);
-  --switch-track-on: #1e1e1e;
+  --switch-track-on: rgba(0, 0, 0, 0.88);
   --switch-knob-off: #808080;
   --switch-knob-on: #e3e3e3;
   --switch-track-off-disabled: rgba(0, 0, 0, 0.06);
-  --switch-track-on-disabled: #a7a7a7;
+  --switch-track-on-disabled: rgba(0, 0, 0, 0.36);
   --switch-knob-disabled: #d4d4d4;
   --danger: var(--brand);
   --danger-weak: var(--brand-weak);
@@ -139,14 +139,14 @@
 html[data-theme="dark"] {
   --bg: #111214;
   --bg-raised: #191a1d;
-  --control-bg: #24272d;
-  --control-bg-hover: #30343b;
-  --control-bg-active: #292d34;
+  --control-bg: rgba(255, 255, 255, 0.08);
+  --control-bg-hover: rgba(255, 255, 255, 0.14);
+  --control-bg-active: rgba(255, 255, 255, 0.1);
   --side-hover: rgba(255, 255, 255, 0.055);
   --side-selected: rgba(255, 255, 255, 0.11);
   --side-press: rgba(255, 255, 255, 0.09);
   --focus-bar: rgba(255, 255, 255, 0.55);
-  --seg-thumb-bg: #3a3e47;
+  --seg-thumb-bg: rgba(255, 255, 255, 0.12);
   --bg-hover: rgba(255, 255, 255, 0.045);
   --bg-active: rgba(255, 255, 255, 0.08);
   --row-alt: rgba(255, 255, 255, 0.038);
@@ -179,11 +179,11 @@ html[data-theme="dark"] {
 
   /* 语义色 */
   --switch-track-off: rgba(255, 255, 255, 0.2);
-  --switch-track-on: #e6e7e8;
+  --switch-track-on: rgba(255, 255, 255, 0.88);
   --switch-knob-off: #8b8f96;
   --switch-knob-on: #1a1b1d;
   --switch-track-off-disabled: rgba(255, 255, 255, 0.08);
-  --switch-track-on-disabled: #4b4e53;
+  --switch-track-on-disabled: rgba(255, 255, 255, 0.24);
   --switch-knob-disabled: #9aa0a6;
   --slider-thumb: #e6e7e8;
   --danger: var(--brand);
@@ -215,6 +215,34 @@ html[data-theme="dark"] {
 html[data-theme="dark"] #splash {
   background: var(--bg);
 }
+/* Windows 11 Mica：侧栏模式只透出侧栏，整窗模式透出全部主表面 */
+html[data-mica="sidebar"],
+html[data-mica="sidebar"] body,
+html[data-mica="sidebar"] .app,
+html[data-mica="sidebar"] .sidebar,
+html[data-mica="full"],
+html[data-mica="full"] body,
+html[data-mica="full"] .app,
+html[data-mica="full"] .sidebar {
+  background: transparent;
+}
+
+html[data-mica="sidebar"] .main,
+html[data-mica="sidebar"] .workspace,
+html[data-mica="sidebar"] .pane--list {
+  background: var(--bg);
+}
+
+html[data-mica="full"] .main,
+html[data-mica="full"] .workspace,
+html[data-mica="full"] .pane--list,
+html[data-mica="full"] .pane--detail,
+html[data-mica="full"] .titlebar,
+html[data-mica="full"] .toolbar,
+html[data-mica="full"] .list-head {
+  background: transparent;
+}
+
 /* ── 2. 基础 ─────────────────────────────────────────────────────── */
 
 * {
@@ -379,40 +407,14 @@ button {
   pointer-events: none;
 }
 
-.search__input {
+/* 复用 .input 的底色、悬停、聚焦线，只保留搜索框的尺寸与左右图标留白 */
+.search .search__input {
   width: 100%;
-  height: var(--control-h);
-  padding: 0 26px 0 26px;
-  background-color: var(--control-bg);
-  /* 底部粗线用背景渐变实现，宽度从 0 展开到 100% */
-  background-image: linear-gradient(var(--focus-bar), var(--focus-bar));
-  background-repeat: no-repeat;
-  background-position: left bottom;
-  background-size: 0% 3px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  color: var(--ink);
-  font-size: var(--fs-sm);
-  outline: none;
+  padding: 0 26px;
 }
 
 .search__input::placeholder {
   color: var(--muted);
-}
-
-/* 悬停 / 按下只在未聚焦时生效：聚焦后背景保持静止，只留底部线 */
-.search__input:hover:not(:focus) {
-  background-color: var(--control-bg-hover);
-}
-
-.search__input:active:not(:focus) {
-  background-color: var(--control-bg-active);
-}
-
-/* 输入态：底部粗线自左向右展开；失焦时按原路收回 */
-.search__input:focus {
-  background-color: var(--control-bg);
-  background-size: 100% 3px;
 }
 
 .search__input::-webkit-search-cancel-button {
@@ -437,6 +439,11 @@ button {
 /* 只有视图切换需要裁切：高亮块永远不越出控件边界 */
 .cluster--view {
   overflow: hidden;
+}
+
+/* 预览输入框自身带底色，外层不再重复铺一层 */
+.cluster--preview {
+  background: transparent;
 }
 
 /* 高亮块比格子小一圈，四周留等宽内边距 */
@@ -1111,17 +1118,24 @@ textarea:disabled {
   height: var(--control-h);
   gap: 5px;
   padding: 0 10px;
-  background: var(--control-bg);
-  color: var(--ink-soft);
   font-size: var(--fs-sm);
 }
 
-.btn--solid:hover {
+/* 实心按钮与次要按钮共用底色 / 悬停 / 按下状态 */
+.btn--solid,
+.btn--soft {
+  background: var(--control-bg);
+  color: var(--ink-soft);
+}
+
+.btn--solid:hover,
+.btn--soft:hover {
   background: var(--control-bg-hover);
   color: var(--ink);
 }
 
-.btn--solid:active {
+.btn--solid:active,
+.btn--soft:active {
   background: var(--control-bg-active);
   color: var(--ink);
 }
@@ -1148,20 +1162,11 @@ textarea:disabled {
   color: var(--bg);
 }
 
-/* 弹窗次按钮：与界面普通按钮同款（常规 / 悬停 / 按下） */
-.btn--soft {
-  background: var(--control-bg);
-  color: var(--ink-soft);
-}
-
-.btn--soft:hover {
-  background: var(--control-bg-hover);
-  color: var(--ink);
-}
-
-.btn--soft:active {
-  background: var(--control-bg-active);
-  color: var(--ink);
+/* 小高度按钮：继承普通按钮的颜色与状态，只缩小高度和内边距 */
+.btn--sm {
+  height: calc(var(--control-h) - 4px);
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-xs);
 }
 
 /* 危险操作：只有红字，没有底 */
@@ -2281,16 +2286,24 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   height: 12px;
   border-radius: 1px;
   background: var(--switch-knob-off);
-  transform: translateX(0) scale(1);
-  /* 位移与放大写在同一个 transform 里，保证以手柄自身为中心缩放 */
+  transform: translateX(0);
+  /* 悬停用整数宽高过渡，避免 transform 缩放产生亚像素内边距 */
   transition:
     transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
     background 200ms ease;
 }
 
 /* 悬停时手柄略微放大（放大不参与位移，缩放中心就是手柄中心） */
 .switch:not(:disabled):hover .switch__knob {
-  transform: translateX(0) scale(1.14);
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 14px;
+  transform: translateX(0);
 }
 
 .switch[aria-checked="true"] {
@@ -2298,12 +2311,16 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
 }
 
 .switch[aria-checked="true"] .switch__knob {
-  transform: translateX(17px) scale(1);
+  transform: translateX(17px);
   background: var(--switch-knob-on);
 }
 
 .switch[aria-checked="true"]:not(:disabled):hover .switch__knob {
-  transform: translateX(17px) scale(1.14);
+  top: 1px;
+  left: 1px;
+  width: 11px;
+  height: 14px;
+  transform: translateX(17px);
 }
 
 
@@ -2946,18 +2963,19 @@ html[data-detail="closed"] .pane--detail {
 
 .fmenu__opt.is-checked {
   color: var(--ink);
+  font-weight: 600;
 }
 
 .fmenu__check {
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.fmenu__check svg {
-  width: 16px;
-  height: 16px;
-}
+
 
 /* ── 字族标题行 ───────────────────────────────────────────────────── */
 
@@ -3155,6 +3173,7 @@ html[data-detail="closed"] .pane--detail {
 
 .group-menu__item.is-active {
   color: var(--ink);
+  font-weight: 600;
 }
 
 .group-menu__check {
@@ -3163,14 +3182,9 @@ html[data-detail="closed"] .pane--detail {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  color: var(--ink);
+  justify-content: flex-start;
 }
 
-.group-menu__check svg {
-  width: 14px;
-  height: 14px;
-}
 
 /* 图标按钮带文字（筛选激活时）：变宽、左内边距 9px 让图标与窄态同轴 */
 .icon-btn--labeled {
@@ -3456,6 +3470,15 @@ html[data-theme="dark"] .about__wordmark--dark {
   position: relative;
 }
 
+.dropdown__button:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.settings-row.is-disabled {
+  opacity: 0.45;
+}
+
 .dropdown__button {
   display: flex;
   transition:
@@ -3496,6 +3519,10 @@ html[data-theme="dark"] .about__wordmark--dark {
   transition: transform 160ms ease;
 }
 
+.dropdown--sm .dropdown__button {
+  height: calc(var(--control-h) - 4px);
+}
+
 .dropdown__button[aria-expanded="true"] .dropdown__chev {
   transform: rotate(180deg);
 }
@@ -3505,20 +3532,31 @@ html[data-theme="dark"] .about__wordmark--dark {
 }
 
 .dropdown__item {
+  padding-left: var(--sp-2);
   transition:
     background-color 50ms ease-out,
     color 50ms ease-out;
 }
 
-.dropdown__check {
+.dropdown__mark {
   display: inline-flex;
   flex: 0 0 14px;
   width: 14px;
+  align-items: center;
+  justify-content: center;
 }
 
-.dropdown__check svg {
-  width: 14px;
-  height: 14px;
+.dropdown__dot,
+.group-menu__dot,
+.fmenu__check-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.dropdown__item--selected {
+  font-weight: 600;
 }
 
 .settings-row__desc {

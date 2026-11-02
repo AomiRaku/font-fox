@@ -3,7 +3,6 @@
 
 /** 筛选菜单：分类 tab 与选项列表。 */
 
-import { icon } from "./icons";
 import { t } from "./i18n";
 import {
   attachOverlayScrollbar,
@@ -293,7 +292,7 @@ function optionRow(label: string, checked: boolean, onClick: () => void): HTMLEl
 
   const mark = document.createElement("span");
   mark.className = "fmenu__check";
-  if (checked) mark.appendChild(icon("check", "fmenu__check-icon"));
+  if (checked) mark.appendChild(Object.assign(document.createElement("span"), { className: "fmenu__check-dot" }));
   button.appendChild(mark);
   button.appendChild(Object.assign(document.createElement("span"), { textContent: label, className: "fmenu__label" }));
   button.addEventListener("click", onClick);

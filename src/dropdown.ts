@@ -99,12 +99,18 @@ export function createDropdown(
       item.className = "ctx__item dropdown__item";
       item.setAttribute("role", "option");
       item.setAttribute("aria-selected", String(option.value === current));
-      const check = document.createElement("span");
-      check.className = "dropdown__check";
-      if (option.value === current) check.appendChild(icon("check"));
+      const selected = option.value === current;
+      const mark = document.createElement("span");
+      mark.className = "dropdown__mark";
+      if (selected) {
+        item.classList.add("dropdown__item--selected");
+        const dot = document.createElement("span");
+        dot.className = "dropdown__dot";
+        mark.appendChild(dot);
+      }
       const text = document.createElement("span");
       text.textContent = option.label;
-      item.append(check, text);
+      item.append(mark, text);
       item.addEventListener("click", () => choose(option.value));
       box.appendChild(item);
     }

@@ -51,6 +51,7 @@ import {
   type UpdateInfo,
   type UpdateProgress,
   type UpdateSource,
+  type MicaMode,
 } from "./types";
 import {
   attachOverlayScrollbar,
@@ -245,9 +246,54 @@ function resolveTheme(): ResolvedTheme {
 let appliedTheme: ResolvedTheme | null = null;
 
 /** 先设置窗口底色再显示，避免首帧使用系统默认白底。 */
+let micaSupport: boolean | null = null;
+
+async function isMicaSupported(): Promise<boolean> {
+  if (micaSupport !== null) return micaSupport;
+  try {
+    micaSupport = await api.micaSupported();
+  } catch {
+    micaSupport = false;
+  }
+  return micaSupport;
+}
+
+async function syncWindowMica(): Promise<MicaMode> {
+  const mode = state.settings.micaMode;
+  if (mode === "off") {
+    document.documentElement.dataset.mica = "off";
+    try {
+      await api.setWindowMica("off", resolveTheme() === "dark");
+      await appWindow.setBackgroundColor(resolveTheme() === "dark" ? "#111214" : "#F7F7F8");
+    } catch {
+      /* 平台不支持时保留纯色窗口 */
+    }
+    return "off";
+  }
+  if (!(await isMicaSupported())) {
+    state.settings.micaMode = "off";
+    document.documentElement.dataset.mica = "off";
+    return "off";
+  }
+  try {
+    await api.setWindowMica(mode, resolveTheme() === "dark");
+    document.documentElement.dataset.mica = mode;
+    await appWindow.setBackgroundColor("#00000000");
+    return mode;
+  } catch {
+    state.settings.micaMode = "off";
+    document.documentElement.dataset.mica = "off";
+    return "off";
+  }
+}
 async function revealWindow(): Promise<void> {
   try {
-    await appWindow.setBackgroundColor(resolveTheme() === "dark" ? "#111214" : "#F7F7F8");
+    const mica = document.documentElement.dataset.mica;
+    await appWindow.setBackgroundColor(
+      mica === "sidebar" || mica === "full"
+        ? "#00000000"
+        : resolveTheme() === "dark" ? "#111214" : "#F7F7F8",
+    );
   } catch {
     /* 权限或平台不支持时只影响首帧底色 */
   }
@@ -1482,10 +1528,12 @@ function toggleGroupMenu(): void {
     item.setAttribute("role", "menuitemradio");
     const active = state.groupBy === option.mode;
     item.setAttribute("aria-checked", String(active));
-    if (active) item.classList.add("is-active");
-    const check = el("span", "group-menu__check");
-    if (active) check.appendChild(icon("check"));
-    item.appendChild(check);
+    const mark = el("span", "group-menu__check");
+    if (active) {
+      item.classList.add("is-active");
+      mark.appendChild(el("span", "group-menu__dot"));
+    }
+    item.appendChild(mark);
     item.appendChild(el("span", "group-menu__label", option.label));
     item.addEventListener("click", () => {
       closeGroupMenu();
@@ -2784,7 +2832,7 @@ function openSettings(): void {
       void changeLanguage(id);
     },
   );
-  languageSelect.el.classList.add("settings-row__control");
+  languageSelect.el.classList.add("settings-row__control", "dropdown--sm");
   const languageRow = row(t("settings.language"), languageSelect.el);
   languageRow.querySelector(".settings-row__label")?.append(
     icon("earth-filled", "settings-row__icon"),
@@ -2799,10 +2847,47 @@ function openSettings(): void {
       applyTheme();
       syncThemeButton();
       scheduleSave();
+      if (state.settings.micaMode !== "off") void syncWindowMica();
     },
   );
-  themeSelect.el.classList.add("settings-row__control");
+  themeSelect.el.classList.add("settings-row__control", "dropdown--sm");
   list.appendChild(row(t("settings.theme"), themeSelect.el));
+
+  const micaSelect = createDropdown(
+    [
+      { value: "off", label: t("settings.micaOff") },
+      { value: "sidebar", label: t("settings.micaSidebar") },
+      { value: "full", label: t("settings.micaFull") },
+    ],
+    state.settings.micaMode,
+    (value) => {
+      state.settings.micaMode = value as MicaMode;
+      scheduleSave();
+      void syncWindowMica().then((effective) => {
+        if (effective !== value) micaSelect.setValue(effective);
+      });
+    },
+  );
+  micaSelect.el.classList.add("settings-row__control", "dropdown--sm");
+  const micaRow = row(
+    t("settings.sidebarMica"),
+    micaSelect.el,
+    t("settings.sidebarMicaHint"),
+  );
+  list.appendChild(micaRow);
+  void api
+    .micaSupported()
+    .then((supported) => {
+      const button = micaSelect.el.querySelector<HTMLButtonElement>("button");
+      if (button) button.disabled = !supported;
+      micaRow.classList.toggle("is-disabled", !supported);
+      if (!supported) {
+        state.settings.micaMode = "off";
+        micaSelect.setValue("off");
+      }
+    })
+    .catch(() => undefined);
+
   list.appendChild(
     switchRow(
       t("settings.rowHover"),
@@ -2829,7 +2914,7 @@ function openSettings(): void {
     ),
   );
 
-  const checkButton = el("button", "btn btn--soft", t("settings.checkUpdate")) as HTMLButtonElement;
+  const checkButton = el("button", "btn btn--soft btn--sm", t("settings.checkUpdate")) as HTMLButtonElement;
   checkButton.type = "button";
   const checkStatus = el("span", "settings-update__status");
   const checkControl = el("div", "settings-update");
@@ -2842,7 +2927,7 @@ function openSettings(): void {
   ): void => {
     checkState = next;
     checkButton.disabled = next === "checking";
-    checkButton.className = next === "available" ? "btn btn--primary" : "btn btn--soft";
+    checkButton.className = next === "available" ? "btn btn--primary btn--sm" : "btn btn--soft btn--sm";
     checkButton.textContent = next === "checking"
       ? t("about.checking")
       : next === "available"
@@ -2939,7 +3024,7 @@ function openSettings(): void {
       scheduleSave();
     },
   );
-  updateSourceSelect.el.classList.add("settings-row__control");
+  updateSourceSelect.el.classList.add("settings-row__control", "dropdown--sm");
   advancedInner.appendChild(
     row(
       t("settings.updateSource"),
@@ -2972,7 +3057,7 @@ function openSettings(): void {
       scheduleSave();
     },
   );
-  select.el.classList.add("settings-row__control");
+  select.el.classList.add("settings-row__control", "dropdown--sm");
 
   const disableRow = row(t("settings.disableMode"), select.el, t("settings.disableHint"));
   disableRow.appendChild(hint);
@@ -4178,6 +4263,7 @@ function bindEvents(): void {
     if (state.settings.theme === "system") {
       applyTheme();
       syncThemeButton();
+      if (state.settings.micaMode !== "off") void syncWindowMica();
     }
   };
   void api
@@ -4333,6 +4419,7 @@ async function boot(): Promise<void> {
   document.title = t("app.name");
 
   applyTheme();
+  await syncWindowMica();
   syncToolbar();
   void revealWindow();
 

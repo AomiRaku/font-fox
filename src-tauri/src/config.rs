@@ -92,6 +92,11 @@ pub fn load() -> Settings {
     if let Some(v) = entry(&entries, "RowHover") {
         settings.row_hover = v.eq_ignore_ascii_case("true");
     }
+    if let Some(v) = entry(&entries, "MicaMode") {
+        settings.mica_mode = v.to_string();
+    } else if let Some(v) = entry(&entries, "SidebarMica") {
+        settings.mica_mode = if v.eq_ignore_ascii_case("true") { "sidebar" } else { "off" }.to_string();
+    }
     if let Some(v) = entry(&entries, "DisableMode") {
         settings.disable_mode = v.to_string();
     }
@@ -119,6 +124,7 @@ pub fn save(settings: &Settings) -> Result<(), String> {
          Language={}\r\n\
          DetailOpen={}\r\n\
          RowHover={}\r\n\
+         MicaMode={}\r\n\
          DisableMode={}\r\n\
          DisableModeNext={}\r\n\
          AutoCheckUpdates={}\r\n\
@@ -129,6 +135,7 @@ pub fn save(settings: &Settings) -> Result<(), String> {
         one_line(&settings.language),
         settings.detail_open,
         settings.row_hover,
+        one_line(&settings.mica_mode),
         one_line(&settings.disable_mode),
         one_line(&settings.disable_mode_next),
         settings.auto_check_updates,

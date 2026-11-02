@@ -56,6 +56,7 @@
 | `src-tauri/src/library.rs` | `library.json` 读写（收藏 / 字体单） |
 | `src-tauri/src/i18n.rs` | 外挂语言包解析（`section.key`） |
 | `src-tauri/src/theme.rs` | 读取系统应用明暗并在变化时推事件 |
+| `src-tauri/src/mica.rs` | Windows 11 Mica 支持检测与窗口效果控制 |
 | `src-tauri/src/restore_dialog.rs` | 卸载恢复失败时的原生重试对话框 |
 | `src-tauri/src/update.rs` | 版本检查、Release 日志、更新下载与取消 |
 | `src-tauri/build.rs` | 编译期复制 `langBuild/*.ini` 到 `target/<profile>/lang/`，并删除目标目录中的过期语言文件 |
@@ -78,6 +79,8 @@
 | `reveal_path` | `path` | 在资源管理器中定位（系统字体目录走 `shell:Fonts`） |
 | `registry_location` | `scope` | 注册表路径（详情面板展示） |
 | `system_theme` | — | `light` / `dark`（读 `AppsUseLightTheme`） |
+| `mica_supported` | — | 当前系统是否支持 Windows 11 Mica |
+| `set_window_mica` | `mode`, `dark` | 应用 Mica（`sidebar` / `full`）或清除 |
 | `load_language` | `id` | 解析后的语言包（含 `[meta] LanguageCode`） |
 | `list_languages` | — | exe 同级 `lang/*.ini` 的 `{ id, name, code }` 列表 |
 | `system_locale` | — | 当前 Windows 用户区域设置（BCP 47，如 `zh-CN`） |
@@ -126,7 +129,7 @@
 
 ## 设置与字体单
 
-- `config.ini`：`viewMode`、`theme`、`language`、`detailOpen`、`rowHover`、`disableMode`、`disableModeNext`、`autoCheckUpdates`、`updateSource`、`ignoredUpdateVersion`
+- `config.ini`：`viewMode`、`theme`、`language`、`detailOpen`、`rowHover`、`micaMode`、`disableMode`、`disableModeNext`、`autoCheckUpdates`、`updateSource`、`ignoredUpdateVersion`
   （预览文字只在会话内，不写入配置）。
 - `library.json`：`favorites`（字体 id 列表）与 `collections`（名称、标记色、字体 id 列表）。
 - 偏好改动 350ms 防抖后写入；字体单改动 250ms 防抖后写入；两者都用临时文件 + rename 原子落盘。

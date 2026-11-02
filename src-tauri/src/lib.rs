@@ -13,6 +13,7 @@ pub mod fontchange;
 pub mod i18n;
 pub mod langs;
 pub mod library;
+mod mica;
 pub mod inactive;
 pub mod mode;
 pub mod model;
@@ -65,6 +66,8 @@ pub fn run() {
             commands::load_library,
             commands::save_library,
 commands::export_fonts,
+mica::mica_supported,
+mica::set_window_mica,
             commands::app_info,
             commands::about,
             commands::reveal_path,

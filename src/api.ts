@@ -100,6 +100,9 @@ export const api = {
 
   /** 打开 DevTools（设置里的开发者工具开关）。 */
   openDevTools: () => invoke<void>("open_devtools"),
+  micaSupported: () => invoke<boolean>("mica_supported"),
+  setWindowMica: (mode: "off" | "sidebar" | "full", dark: boolean) =>
+    invoke<void>("set_window_mica", { mode, dark }),
 
   /** 可用语言包列表（exe 同级 `lang/*.ini`）。 */
   listLanguages: () =>

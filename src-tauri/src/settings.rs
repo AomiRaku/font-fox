@@ -10,6 +10,7 @@ const VIEW_MODES: [&str; 2] = ["compact", "preview"];
 const THEMES: [&str; 3] = ["system", "dark", "light"];
 const DISABLE_MODES: [&str; 2] = ["windows", "dynamic"];
 const UPDATE_SOURCES: [&str; 3] = ["github", "mirror1", "mirror2"];
+const MICA_MODES: [&str; 3] = ["off", "sidebar", "full"];
 
 /// 待应用的禁用方式：只接受已知值，且不能与当前生效值相同。
 fn pick_optional_mode(value: &str, current: &str) -> String {
@@ -43,6 +44,10 @@ pub fn load() -> Settings {
     settings.disable_mode = pick(&settings.disable_mode, &DISABLE_MODES, &defaults.disable_mode);
     settings.disable_mode_next = pick_optional_mode(&settings.disable_mode_next, &settings.disable_mode);
     settings.update_source = normalize_update_source(&settings.update_source, &defaults.update_source);
+    settings.mica_mode = pick(&settings.mica_mode, &MICA_MODES, &defaults.mica_mode);
+    if !crate::mica::is_supported() {
+        settings.mica_mode = "off".to_string();
+    }
     if settings.language.trim().is_empty() {
         settings.language = defaults.language;
     }
@@ -58,6 +63,10 @@ pub fn save(settings: &Settings) -> Result<(), String> {
     normalized.disable_mode_next =
         pick_optional_mode(&settings.disable_mode_next, &normalized.disable_mode);
     normalized.update_source = normalize_update_source(&settings.update_source, &defaults.update_source);
+    normalized.mica_mode = pick(&settings.mica_mode, &MICA_MODES, &defaults.mica_mode);
+    if !crate::mica::is_supported() {
+        normalized.mica_mode = "off".to_string();
+    }
     if normalized.language.trim().is_empty() {
         normalized.language = defaults.language;
     }

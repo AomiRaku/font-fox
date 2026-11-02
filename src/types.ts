@@ -123,6 +123,8 @@ export interface Settings {
   detailOpen: boolean;
   /** 字体列表行是否显示悬停底色。 */
   rowHover: boolean;
+  /** Mica 模式：关闭 / 仅侧栏 / 整个界面。 */
+  micaMode: MicaMode;
   /** 启动与打开关于页时是否自动检查更新。 */
   autoCheckUpdates: boolean;
   /** 软件更新源。 */
@@ -138,6 +140,8 @@ export interface Settings {
 export type DisableMode = "windows" | "dynamic";
 
 export type UpdateSource = "github" | "mirror1" | "mirror2";
+
+export type MicaMode = "off" | "sidebar" | "full";
 
 export interface UpdateInfo {
   latestVersion: string;
@@ -174,6 +178,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ignoredUpdateVersion: "",
   detailOpen: true,
   rowHover: false,
+  micaMode: "sidebar",
   disableMode: "dynamic",
   disableModeNext: "",
 };
