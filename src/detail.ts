@@ -466,6 +466,7 @@ function openAxesPanel(
   const onOutside = (event: PointerEvent): void => {
     const target = event.target as Node | null;
     if (panel.contains(target) || button.contains(target)) return;
+    if (target instanceof Element && target.closest(".ovl-scroll")) return;
     closeAxesPanel();
   };
   const onKey = (event: KeyboardEvent): void => {
@@ -474,11 +475,14 @@ function openAxesPanel(
     closeAxesPanel();
     button.focus();
   };
+  const onResize = (): void => closeAxesPanel();
   document.addEventListener("pointerdown", onOutside, true);
   document.addEventListener("keydown", onKey, true);
+  window.addEventListener("resize", onResize);
   axesPanelCleanup = () => {
     document.removeEventListener("pointerdown", onOutside, true);
     document.removeEventListener("keydown", onKey, true);
+    window.removeEventListener("resize", onResize);
   };
   axesPanel = panel;
 }
