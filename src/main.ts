@@ -3823,6 +3823,7 @@ function addEntriesToCollection(entries: FontEntry[], collection: Collection): v
   if (fresh.length === 0) return;
   for (const entry of fresh) collection.fonts.push(entry.id);
   scheduleLibrarySave();
+  renderSidebar();
   const name = entries.length > 1 ? entries[0].family : fontLabel(entries[0]);
   toast(t("toast.addedToCollection", { name, list: collection.name }));
   if (state.view.kind === "collection" && state.view.id === collection.id) {
@@ -3838,6 +3839,7 @@ function removeEntriesFromCollection(entries: FontEntry[]): void {
   const removing = new Set(entries.map((entry) => entry.id));
   collection.fonts = collection.fonts.filter((id) => !removing.has(id));
   scheduleLibrarySave();
+  renderSidebar();
   const name = entries.length > 1 ? entries[0].family : fontLabel(entries[0]);
   toast(t("toast.removedFromCollection", { name, list: collection.name }));
   for (const id of removing) state.selectedIds.delete(id);
