@@ -3684,6 +3684,7 @@ function renderSidebar(): void {
     marker.style.setProperty("--marker", `#${color}`);
     item.appendChild(marker);
     item.appendChild(el("span", "sidebar__name", collection.name));
+    item.appendChild(el("span", "sidebar__count sidebar__count--sub", String(collection.fonts.length)));
     dom.collections.appendChild(item);
   });
 }
