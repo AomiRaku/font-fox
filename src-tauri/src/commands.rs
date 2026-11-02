@@ -313,10 +313,10 @@ pub fn save_library(library: library::Library) -> Result<(), String> {
 }
 #[tauri::command]
 pub fn export_fonts(
-    paths: Vec<String>,
+    items: Vec<crate::export::ExportItem>,
     labels: crate::export::ExportLabels,
 ) -> Result<usize, String> {
-    crate::export::export(paths, &labels)
+    crate::export::export(items, &labels)
 }
 
 /// 对外版本号：内部 semver 为 `major.minor.0`，界面显示为 `major.minor`（minor 补足两位）。

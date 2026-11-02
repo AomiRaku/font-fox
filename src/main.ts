@@ -1753,15 +1753,24 @@ function renderAll(): void {
 
 /* ───────────────────────────── 数据操作 ───────────────────────────── */
 
+function exportFileName(entry: FontEntry): string {
+  const family = (entry.family || entry.displayName || "font").trim();
+  const style = entry.style?.trim();
+  return style ? `${family}-${style}` : family;
+}
+
 async function exportFonts(entries: FontEntry[]): Promise<void> {
-  const paths = entries.filter((entry) => entry.exists).map((entry) => entry.path);
-  if (paths.length === 0) return;
+  const items = entries
+    .filter((entry) => entry.exists)
+    .map((entry) => ({ path: entry.path, fileName: exportFileName(entry) }));
+  if (items.length === 0) return;
   try {
-    const count = await api.exportFonts(paths, {
+    const count = await api.exportFonts(items, {
       title: t("export.title"),
       folderTitle: t("export.folderTitle"),
       fontFiles: t("export.fontFiles"),
       allFiles: t("export.allFiles"),
+      overwriteMessage: t("export.overwriteMessage"),
     });
     if (count > 0) toast(t("toast.exported", { count }));
   } catch (err) {
