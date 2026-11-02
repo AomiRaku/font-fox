@@ -1639,6 +1639,9 @@ function renderDetailPane(): void {
           cleanMissing: (entry) => {
             void cleanMissing(entry);
           },
+          exportFonts: (targets) => {
+            void exportFonts(targets);
+          },
           reveal: (target) => {
             void api
               .revealPath(target.path)
@@ -1679,6 +1682,9 @@ function renderDetailPane(): void {
       cleanMissing: (target) => {
         void cleanMissing(target);
       },
+      exportFonts: (targets) => {
+        void exportFonts(targets);
+      },
       reveal: (target) => {
         void api
           .revealPath(target.path)
@@ -1699,6 +1705,21 @@ function renderAll(): void {
 
 /* ───────────────────────────── 数据操作 ───────────────────────────── */
 
+async function exportFonts(entries: FontEntry[]): Promise<void> {
+  const paths = entries.filter((entry) => entry.exists).map((entry) => entry.path);
+  if (paths.length === 0) return;
+  try {
+    const count = await api.exportFonts(paths, {
+      title: t("export.title"),
+      folderTitle: t("export.folderTitle"),
+      fontFiles: t("export.fontFiles"),
+      allFiles: t("export.allFiles"),
+    });
+    if (count > 0) toast(t("toast.exported", { count }));
+  } catch (err) {
+    toast(errorText(err), true);
+  }
+}
 async function refresh(): Promise<boolean> {
   state.scanning = true;
   if (state.fonts.length === 0) {

@@ -2755,6 +2755,11 @@ html[data-detail="closed"] .pane--detail {
   background: var(--danger-weak);
 }
 
+.ctx__item--danger:disabled,
+.ctx__item--danger:disabled .ctx__icon {
+  color: var(--muted);
+}
+
 .ctx__icon {
   flex: none;
   width: 14px;
@@ -2790,7 +2795,7 @@ html[data-detail="closed"] .pane--detail {
   z-index: 900;
   display: flex;
   max-height: calc(8 * var(--fmenu-tab-h));
-  border: 0;
+  border: 1px solid var(--popover-line);
   border-radius: var(--radius);
   background: var(--bg-raised);
   box-shadow: var(--shadow-menu);
@@ -2833,7 +2838,7 @@ html[data-detail="closed"] .pane--detail {
 .fmenu__clear {
   flex: 0 0 auto;
   height: 32px;
-  margin: var(--sp-1) var(--sp-2) var(--sp-1);
+  margin: auto var(--sp-2) var(--sp-1);
   border: 0;
   border-radius: var(--radius);
   background: transparent;

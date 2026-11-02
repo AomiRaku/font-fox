@@ -8,6 +8,7 @@ pub mod config;
 pub mod delete;
 pub mod elevation;
 pub mod enumerate;
+pub mod export;
 pub mod fontchange;
 pub mod i18n;
 pub mod langs;
@@ -63,6 +64,7 @@ pub fn run() {
             commands::save_settings,
             commands::load_library,
             commands::save_library,
+commands::export_fonts,
             commands::app_info,
             commands::about,
             commands::reveal_path,

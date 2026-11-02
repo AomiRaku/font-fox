@@ -14,8 +14,9 @@ import check from "@siemens/ix-icons/svg/check.svg?raw";
 import about from "@siemens/ix-icons/svg/about.svg?raw";
 import cogwheel from "@siemens/ix-icons/svg/cogwheel.svg?raw";
 import earthFilled from "@siemens/ix-icons/svg/earth-filled.svg?raw";
-import appMenu from "@siemens/ix-icons/svg/app-menu.svg?raw";
+import appMenu from "./assets/icons/app-menu.svg?raw";
 import errorFilled from "@siemens/ix-icons/svg/error-filled.svg?raw";
+import exportIcon from "@siemens/ix-icons/svg/export.svg?raw";
 import expandAll from "@siemens/ix-icons/svg/expand-all.svg?raw";
 import listGraphicsText from "@siemens/ix-icons/svg/list-graphics-text.svg?raw";
 import navigationRight from "@siemens/ix-icons/svg/navigation-right.svg?raw";
@@ -53,6 +54,7 @@ const SOURCES = {
   "earth-filled": earthFilled,
   "app-menu": appMenu,
   "error-filled": errorFilled,
+  export: exportIcon,
   "expand-all": expandAll,
   "list-graphics-text": listGraphicsText,
   "navigation-right": navigationRight,

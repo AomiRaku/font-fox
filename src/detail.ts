@@ -26,6 +26,7 @@ export interface DetailHandlers {
   /** 请求删除（单选或多选），由上层弹确认框。 */
   requestDelete(entries: FontEntry[]): void;
   cleanMissing(entry: FontEntry): void;
+  exportFonts(entries: FontEntry[]): void;
   reveal(entry: FontEntry): void;
   /** 多选视图：把当前列表里未选中的字体选上、已选中的取消。 */
   invertSelection(): void;
@@ -63,6 +64,16 @@ function iconButton(
   button.title = label;
   button.setAttribute("aria-label", label);
   button.appendChild(icon(iconName, "btn__icon"));
+  return button;
+}
+
+/** 详情操作区的三点菜单；菜单右边缘与按钮对齐。 */
+function actionsMenu(items: MenuItem[]): HTMLButtonElement {
+  const button = iconButton("context-menu", t("detail.actionsMenu"), "btn btn--icon detail__menu");
+  button.addEventListener("click", () => {
+    const rect = button.getBoundingClientRect();
+    openContextMenu(items, rect.right, rect.bottom + 4, { alignRight: true });
+  });
   return button;
 }
 
@@ -347,9 +358,7 @@ function multiPane(
     const allHidden = userEntries.every((e) => e.hidden);
     const toggle = actionButton(
       allHidden ? "eye-filled" : "eye-cancelled-filled",
-      allHidden
-        ? t("detail.toggleShow", { count: userEntries.length })
-        : t("detail.toggleHide", { count: userEntries.length }),
+      allHidden ? t("ctx.enable") : t("ctx.disable"),
       "btn btn--solid detail__actions-grow",
     );
     toggle.disabled = isTogglePending(userEntries);
@@ -358,20 +367,7 @@ function multiPane(
   }
 
   const deletable = entries.filter((e) => e.exists && !e.protected);
-  if (deletable.length > 0) {
-    const remove = iconButton(
-      "trashcan-filled",
-      deletable.length === 1
-        ? t("detail.delete")
-        : t("detail.deleteMany", { count: deletable.length }),
-      "btn btn--solid btn--danger btn--icon",
-    );
-    if (deletable.some((e) => e.requiresElevation)) {
-      remove.title = t("detail.uacTitle");
-    }
-    remove.addEventListener("click", () => handlers.requestDelete(deletable));
-    trailing.appendChild(remove);
-  }
+  const exportable = entries.filter((entry) => entry.exists);
 
   const secondary = el("div", "detail__actions detail__actions--secondary");
   const invert = el("button", "btn btn--solid", t("detail.invertSelection"));
@@ -380,6 +376,29 @@ function multiPane(
   secondary.appendChild(invert);
   fragment.appendChild(secondary);
 
+  const menuItems: MenuItem[] = [];
+  if (exportable.length > 0) {
+    menuItems.push({
+      label: t("detail.exportFont"),
+      icon: "export",
+      run: () => handlers.exportFonts(exportable),
+    });
+  }
+  menuItems.push({
+    label: t("detail.reveal"),
+    icon: "folder-open-filled",
+    disabled: true,
+  });
+  if (entries.some((entry) => entry.exists)) {
+    menuItems.push({
+      label: t("detail.delete"),
+      icon: "trashcan-filled",
+      danger: deletable.length > 0,
+      disabled: deletable.length === 0,
+      run: deletable.length > 0 ? () => handlers.requestDelete(deletable) : undefined,
+    });
+  }
+  if (menuItems.some((item) => !item.disabled)) trailing.appendChild(actionsMenu(menuItems));
   actions.appendChild(trailing);
   fragment.appendChild(actions);
   return fragment;
@@ -448,27 +467,26 @@ export function renderDetail(
   const menuItems: MenuItem[] = [];
   if (entry.exists) {
     menuItems.push({
+      label: t("detail.exportFont"),
+      icon: "export",
+      run: () => handlers.exportFonts([entry]),
+    });
+    menuItems.push({
       label: t("detail.reveal"),
       icon: "folder-open-filled",
       run: () => handlers.reveal(entry),
     });
   }
-  if (entry.exists && !entry.protected) {
+  if (entry.exists) {
     menuItems.push({
       label: t("detail.delete"),
       icon: "trashcan-filled",
-      danger: true,
-      run: () => handlers.requestDelete([entry]),
+      danger: !entry.protected,
+      disabled: entry.protected,
+      run: entry.protected ? undefined : () => handlers.requestDelete([entry]),
     });
   }
-  if (menuItems.length > 0) {
-    const more = iconButton("context-menu", t("detail.actionsMenu"), "btn btn--icon detail__menu");
-    more.addEventListener("click", () => {
-      const rect = more.getBoundingClientRect();
-      openContextMenu(menuItems, rect.right, rect.bottom + 4, { alignRight: true });
-    });
-    trailing.appendChild(more);
-  }
+  if (menuItems.length > 0) trailing.appendChild(actionsMenu(menuItems));
   if (trailing.childElementCount > 0) actions.appendChild(trailing);
   container.appendChild(actions);
   // 字体信息在前，文件信息在后；单字体详情不重复列出所属字族
@@ -576,7 +594,7 @@ export function renderFamilyDetail(
     toggle.addEventListener("click", () => handlers.toggleHidden(userEntries));
     actions.appendChild(toggle);
   } else if (entries.some((entry) => entry.protected)) {
-    // 整族都受保护：锁 + 仍然允许定位文件
+    // 整族都受保护：锁
     const lock = el("span", "cell__lock detail__lock");
     const lockSvg = icon("lock", "lock");
     const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
@@ -586,27 +604,33 @@ export function renderFamilyDetail(
     lockSvg.appendChild(title);
     lock.appendChild(lockSvg);
     actions.appendChild(lock);
-    if (entries[0].exists) {
-      const reveal = actionButton(
-        "folder-open-filled",
-        t("detail.reveal"),
-        "btn btn--solid",
-      );
-      reveal.addEventListener("click", () => handlers.reveal(entries[0]));
-      trailing.appendChild(reveal);
-    }
   }
 
   const removable = entries.filter((entry) => entry.exists && !entry.protected);
-  if (removable.length > 0) {
-    const remove = iconButton(
-      "trashcan-filled",
-      t("detail.deleteMany", { count: removable.length }),
-      "btn btn--solid btn--danger btn--icon",
-    );
-    remove.addEventListener("click", () => handlers.requestDelete(removable));
-    trailing.appendChild(remove);
+  const exportable = entries.filter((entry) => entry.exists);
+  const menuItems: MenuItem[] = [];
+  if (exportable.length > 0) {
+    menuItems.push({
+      label: t("detail.exportFont"),
+      icon: "export",
+      run: () => handlers.exportFonts(exportable),
+    });
   }
+  menuItems.push({
+    label: t("detail.reveal"),
+    icon: "folder-open-filled",
+    disabled: true,
+  });
+  if (entries.some((entry) => entry.exists)) {
+    menuItems.push({
+      label: t("detail.delete"),
+      icon: "trashcan-filled",
+      danger: removable.length > 0,
+      disabled: removable.length === 0,
+      run: removable.length > 0 ? () => handlers.requestDelete(removable) : undefined,
+    });
+  }
+  if (menuItems.some((item) => !item.disabled)) trailing.appendChild(actionsMenu(menuItems));
   actions.appendChild(trailing);
   container.appendChild(actions);
 

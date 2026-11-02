@@ -29,6 +29,8 @@ export const api = {
   saveLibrary: (library: import("./types").Library) =>
     invoke<void>("save_library", { library }),
 
+  exportFonts: (paths: string[], labels: { title: string; folderTitle: string; fontFiles: string; allFiles: string }) =>
+    invoke<number>("export_fonts", { paths, labels }),
   saveSettings: (settings: Settings) =>
     invoke<void>("save_settings", { settings }),
 

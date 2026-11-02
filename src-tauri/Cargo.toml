@@ -25,6 +25,7 @@ memmap2 = "0.9"
 png = "0.17"
 base64 = "0.22"
 rayon = "1"
+rfd = "0.15"
 winreg = "0.55"
 windows-sys = { version = "0.59", features = [
   "Win32_Foundation",

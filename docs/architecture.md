@@ -70,6 +70,7 @@
 | `set_fonts_hidden` | `ids, hidden` | `{ changed, errors }` |
 | `delete_fonts` | `ids` | `{ items, elevationRequired, cancelled, removedCount, lockedCount, errors }` |
 | `clean_missing` | `ids` | 同上 |
+| `export_fonts` | `paths` | 导出数量；单文件弹保存窗口，多文件弹文件夹窗口 |
 | `get_settings` / `save_settings` | `settings` | 设置结构 |
 | `load_library` / `save_library` | `library` | 收藏与字体单 |
 | `about` | — | 版本、许可证名称与全文、NOTICE 全文、第三方许可证全文 |
