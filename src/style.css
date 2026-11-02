@@ -185,6 +185,7 @@ html[data-theme="dark"] {
   --switch-track-off-disabled: rgba(255, 255, 255, 0.08);
   --switch-track-on-disabled: #4b4e53;
   --switch-knob-disabled: #9aa0a6;
+  --slider-thumb: #e6e7e8;
   --danger: var(--brand);
   --danger-weak: var(--brand-weak);
   --danger-line: var(--brand-line);
@@ -1708,6 +1709,11 @@ html[data-detail-ready="true"] .pane--detail {
   filter: brightness(0.95);
 }
 
+html[data-theme="dark"] .detail__slider-track:hover::before,
+html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
+  filter: brightness(1.08);
+}
+
 .detail__slider-thumb {
   position: absolute;
   top: 50%;
@@ -1768,6 +1774,11 @@ html[data-detail-ready="true"] .pane--detail {
   margin-left: auto;
   display: flex;
   gap: var(--sp-2);
+}
+
+.detail__menu {
+  height: var(--control-h);
+  color: var(--muted);
 }
 
 /* 按钮按文字自适应宽度，不铺满整行 */
@@ -2715,6 +2726,7 @@ html[data-detail="closed"] .pane--detail {
   align-items: center;
   gap: var(--sp-2);
   width: 100%;
+  text-align: left;
   height: 32px;
   padding: 0 var(--sp-4);
   border: 0;
@@ -2741,6 +2753,21 @@ html[data-detail="closed"] .pane--detail {
 
 .ctx__item--danger:hover:not(:disabled) {
   background: var(--danger-weak);
+}
+
+.ctx__icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.ctx__item--danger .ctx__icon {
+  color: var(--danger);
+}
+
+.ctx__label {
+  min-width: 0;
 }
 
 .ctx__arrow {

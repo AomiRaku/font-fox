@@ -16,12 +16,14 @@ import cogwheel from "@siemens/ix-icons/svg/cogwheel.svg?raw";
 import earthFilled from "@siemens/ix-icons/svg/earth-filled.svg?raw";
 import appMenu from "@siemens/ix-icons/svg/app-menu.svg?raw";
 import errorFilled from "@siemens/ix-icons/svg/error-filled.svg?raw";
+import expandAll from "@siemens/ix-icons/svg/expand-all.svg?raw";
 import listGraphicsText from "@siemens/ix-icons/svg/list-graphics-text.svg?raw";
 import navigationRight from "@siemens/ix-icons/svg/navigation-right.svg?raw";
 import navigationRightHide from "@siemens/ix-icons/svg/navigation-right-hide.svg?raw";
 import heartFilled from "@siemens/ix-icons/svg/heart-filled.svg?raw";
 import close from "@siemens/ix-icons/svg/close.svg?raw";
 import copy from "@siemens/ix-icons/svg/copy.svg?raw";
+import contextMenu from "@siemens/ix-icons/svg/context-menu.svg?raw";
 import eyeCancelled from "@siemens/ix-icons/svg/eye-cancelled-filled.svg?raw";
 import eyeFilled from "@siemens/ix-icons/svg/eye-filled.svg?raw";
 import folderOpen from "@siemens/ix-icons/svg/folder-open-filled.svg?raw";
@@ -46,10 +48,12 @@ const SOURCES = {
   "filter-filled": filterFilled,
   check,
   about,
+  "context-menu": contextMenu,
   cogwheel,
   "earth-filled": earthFilled,
   "app-menu": appMenu,
   "error-filled": errorFilled,
+  "expand-all": expandAll,
   "list-graphics-text": listGraphicsText,
   "navigation-right": navigationRight,
   "navigation-right-hide": navigationRightHide,

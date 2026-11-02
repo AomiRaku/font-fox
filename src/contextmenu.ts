@@ -3,8 +3,12 @@
 
 /** 轻量右键菜单：单实例、点击外部 / Esc / 滚动即关闭。 */
 
+import { icon, type IconName } from "./icons";
+
 export interface MenuItem {
   label: string;
+  /** 可选的菜单项图标。 */
+  icon?: IconName;
   /** 置灰不可点。 */
   disabled?: boolean;
   /** 危险项：文字转为 --danger。 */
@@ -18,6 +22,13 @@ let openMenu: HTMLElement | null = null;
 let openSubmenuEl: HTMLElement | null = null;
 let closeTimer = 0;
 let cleanup: (() => void) | null = null;
+
+function labelNode(text: string): HTMLSpanElement {
+  const node = document.createElement("span");
+  node.className = "ctx__label";
+  node.textContent = text;
+  return node;
+}
 
 function closeSubmenu(): void {
   openSubmenuEl?.remove();
@@ -46,7 +57,8 @@ function openSubmenu(parent: HTMLElement, items: MenuItem[]): void {
     button.type = "button";
     button.className = "ctx__item";
     button.setAttribute("role", "menuitem");
-    button.textContent = item.label;
+    if (item.icon) button.appendChild(icon(item.icon, "ctx__icon"));
+    button.appendChild(labelNode(item.label));
     if (item.danger) button.classList.add("ctx__item--danger");
     if (item.disabled) {
       button.disabled = true;
@@ -82,7 +94,7 @@ export function openContextMenu(
   items: MenuItem[],
   x: number,
   y: number,
-  options: { above?: boolean; onClose?: () => void; note?: string } = {},
+  options: { above?: boolean; alignRight?: boolean; onClose?: () => void; note?: string } = {},
 ): void {
   closeContextMenu();
   if (items.length === 0) return;
@@ -103,7 +115,8 @@ export function openContextMenu(
     button.type = "button";
     button.className = "ctx__item";
     button.setAttribute("role", "menuitem");
-    button.appendChild(document.createTextNode(item.label));
+    if (item.icon) button.appendChild(icon(item.icon, "ctx__icon"));
+    button.appendChild(labelNode(item.label));
     if (item.children && item.children.length > 0) {
       button.classList.add("ctx__item--parent");
       const arrow = document.createElement("span");
@@ -132,7 +145,9 @@ export function openContextMenu(
   // 先量尺寸再落位，避免贴边溢出
   const rect = menu.getBoundingClientRect();
   const gap = 4;
-  const left = Math.min(x, window.innerWidth - rect.width - gap);
+  const left = options.alignRight
+    ? x - rect.width
+    : Math.min(x, window.innerWidth - rect.width - gap);
   const top = options.above
     ? Math.max(gap, y - rect.height)
     : Math.min(y, window.innerHeight - rect.height - gap);

@@ -5,6 +5,7 @@
 
 import { icon } from "./icons";
 import { languageList, t } from "./i18n";
+import { openContextMenu, type MenuItem } from "./contextmenu";
 import {
   defaultPreviewText,
   PREVIEW_FONT_SIZE,
@@ -419,15 +420,6 @@ export function renderDetail(
 
   const actions = el("div", "detail__actions");
   const trailing = el("div", "detail__actions-end");
-  if (entry.exists) {
-    const reveal = actionButton(
-      "folder-open-filled",
-      t("detail.reveal"),
-      "btn btn--solid",
-    );
-    reveal.addEventListener("click", () => handlers.reveal(entry));
-    trailing.appendChild(reveal);
-  }
 
   if (!entry.exists) {
     const clean = el("button", "btn btn--solid btn--danger", t("detail.cleanMissing"));
@@ -448,17 +440,36 @@ export function renderDetail(
     toggle.disabled = ctx.isTogglePending([entry]);
     toggle.addEventListener("click", () => handlers.toggleHidden([entry]));
     actions.appendChild(toggle);
-    const remove = iconButton("trashcan-filled", t("detail.delete"), "btn btn--solid btn--danger btn--icon");
-    if (entry.requiresElevation) {
-      remove.title = t("detail.uacTitle");
-    }
-    remove.addEventListener("click", () => handlers.requestDelete([entry]));
-    trailing.appendChild(remove);
   } else {
     // 受保护字体：原「停用」按钮的位置改成一句说明
     actions.appendChild(el("span", "detail__note", t("detail.protectedNote")));
   }
-  actions.appendChild(trailing);
+
+  const menuItems: MenuItem[] = [];
+  if (entry.exists) {
+    menuItems.push({
+      label: t("detail.reveal"),
+      icon: "folder-open-filled",
+      run: () => handlers.reveal(entry),
+    });
+  }
+  if (entry.exists && !entry.protected) {
+    menuItems.push({
+      label: t("detail.delete"),
+      icon: "trashcan-filled",
+      danger: true,
+      run: () => handlers.requestDelete([entry]),
+    });
+  }
+  if (menuItems.length > 0) {
+    const more = iconButton("context-menu", t("detail.actionsMenu"), "btn btn--icon detail__menu");
+    more.addEventListener("click", () => {
+      const rect = more.getBoundingClientRect();
+      openContextMenu(menuItems, rect.right, rect.bottom + 4, { alignRight: true });
+    });
+    trailing.appendChild(more);
+  }
+  if (trailing.childElementCount > 0) actions.appendChild(trailing);
   container.appendChild(actions);
   // 字体信息在前，文件信息在后；单字体详情不重复列出所属字族
   const fontRows: HTMLElement[] = [];
