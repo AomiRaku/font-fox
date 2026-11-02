@@ -189,6 +189,7 @@ tools/              语言包复制、第三方许可证生成、设计稿解析
   通过 `GetUserDefaultLocaleName` 读取系统 locale，先精确匹配代码；简体中文区域（`zh-Hans` / `zh-SG` / `zh-MY` / `zh-CN`）未命中回退 `zh-CN`，繁体区域（`zh-Hant` / `zh-TW`）回退 `zh-TW`，其余 `zh-*` 回退 `zh-HK`；其他语言未命中时优先同主语言，再回退 `en-US`，仍缺失再回退 `zh-CN`（`zh-cn.ini`）。回退时设置仍保持「使用系统语言」。
 
 - 后端返回的错误字符串为英文，前端只翻译外层提示模板；系统调用返回的文本可能跟随 Windows 显示语言。
+- `Hinting` 特性不是只看表存在：需要 `fpgm` / `prep`、`maxp.maxSizeOfInstructions > 0`，且 `gasp` 中启用 grid-fitting；CFF 内部的 hinting 暂不解析。
 - 窗口 Mica 仅 Windows 11 可用；Windows 10 保留该设置行但整体置灰，值固定为「关闭」，窗口保持纯色背景。
 
 ## 软件更新
@@ -215,8 +216,8 @@ tools/              语言包复制、第三方许可证生成、设计稿解析
 
 ## 版本号
 
-- 对外版本使用 `major.minor`，不补前导零：当前 **1012.0**，后续例如 `1021.0`、`1220.0`、`2200.13`。
-- 内部需要 semver 的工具（Cargo / Tauri / NSIS）使用 `major.minor.0`，例如 `1012.0.0`；`about` 与 `app_info` 对外显示 `major.minor`。
+- 对外版本使用 `major.minor`，不补前导零：当前 **1100.0**，后续例如 `1021.0`、`1220.0`、`2200.13`。
+- 内部需要 semver 的工具（Cargo / Tauri / NSIS）使用 `major.minor.0`，例如 `1100.0.0`；`about` 与 `app_info` 对外显示 `major.minor`。
 - 发版时同步：`package.json`、`package-lock.json`、`src-tauri/Cargo.toml`、`src-tauri/Cargo.lock`（fontfox 条目）、`src-tauri/tauri.conf.json`。
 
 ## 许可证

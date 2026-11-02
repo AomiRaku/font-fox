@@ -80,13 +80,21 @@ pub fn render(
     dpr: f32,
     max_width: f32,
     weight: f32,
+    axes: &HashMap<String, f32>,
     fresh: bool,
     fallback: bool,
 ) -> Result<String, String> {
     // 默认预览文字在字体里没有字形时，回退到字体自身字符集；
     // 用户手动输入的预览文字则直接报「没有对应字符」。
     let text = resolve_text(path, text, fallback)?;
-    let key = format!("{path}|{}|{text}|{size}|{dpr}|{color}|{max_width}|{weight}|{fallback}", file_stamp(path));
+    let mut axis_items: Vec<(&String, &f32)> = axes.iter().collect();
+    axis_items.sort_by(|a, b| a.0.cmp(b.0));
+    let axis_key = axis_items
+        .iter()
+        .map(|(tag, value)| format!("{tag}={value:.3}"))
+        .collect::<Vec<_>>()
+        .join(",");
+    let key = format!("{path}|{}|{text}|{size}|{dpr}|{color}|{max_width}|{weight}|{axis_key}|{fallback}", file_stamp(path));
     if !fresh {
         if let Some(hit) = cache_lookup(&key) {
             return Ok(hit);
@@ -97,9 +105,17 @@ pub fn render(
     let glyphs = glyph_map(path)?;
     let mut font = FontRef::try_from_slice(&mapped[..])
         .map_err(|error| format!("Failed to parse font: {error}"))?;
-    if weight > 0.0 {
-        // 可变字体：按调用方给的字重实例化（Regular 或可变范围的中点）
-        font.set_variation(b"wght", weight);
+    if axes.is_empty() {
+        if weight > 0.0 {
+            // 兼容旧调用：只传字重时实例化 wght。
+            font.set_variation(b"wght", weight);
+        }
+    } else {
+        for (tag, value) in axes {
+            if let Ok(bytes) = <[u8; 4]>::try_from(tag.as_bytes()) {
+                font.set_variation(&bytes, *value);
+            }
+        }
     }
     let data_url = rasterize(&font, &glyphs, &text, size, color, dpr, max_width)?;
     if !fresh {

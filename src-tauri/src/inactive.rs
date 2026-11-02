@@ -173,6 +173,8 @@ mod tests {
             weight_max: 0,
             monospace: false,
             ligatures: true,
+            hinting: false,
+            axes: Vec::new(),
             scope: Scope::User,
             file_name: file.to_string(),
             path: format!("C:\\fonts\\{}", file),

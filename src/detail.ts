@@ -10,11 +10,13 @@ import {
   defaultPreviewText,
   PREVIEW_FONT_SIZE,
   type FontEntry,
+  type FontAxis,
   type Settings,
   protectionLabel,
 } from "./types";
 import type { PreviewPool } from "./preview";
 import { el, formatBytes } from "./rows";
+import { attachOverlayScrollbar, detachOverlayScrollbar } from "./scrollbar";
 import { previewWeight, styleLabel, toHexColor } from "./preview";
 
 /** 详情面板大样字的字号（CSS px） */
@@ -77,6 +79,17 @@ function actionsMenu(items: MenuItem[]): HTMLButtonElement {
   return button;
 }
 
+/** 字体特性的本地化列表；没有特性时显示「无」。 */
+function featureList(entries: FontEntry[]): string {
+  const labels = new Set<string>();
+  for (const entry of entries) {
+    if (entry.monospace) labels.add(t("feature.monospace"));
+    if (entry.ligatures) labels.add(t("feature.ligatures"));
+    if (entry.hinting) labels.add(t("feature.hinting"));
+    if (entry.variable) labels.add(t("feature.variable"));
+  }
+  return labels.size > 0 ? languageList([...labels]) : t("detail.none");
+}
 function kv(label: string, value: string, mono = false): HTMLElement {
   const row = el("div", "kv__row");
   row.appendChild(el("div", "kv__k", label));
@@ -104,7 +117,7 @@ function statusLine(entry: FontEntry): string {
 /** 样字框：`apply` 用于字重滑块实时重绘。 */
 interface SampleView {
   box: HTMLElement;
-  apply(weight: number, live: boolean): void;
+  apply(axes: Record<string, number>, live: boolean): void;
 }
 
 function sample(entry: FontEntry, ctx: DetailContext, stacked = false): SampleView {
@@ -156,7 +169,7 @@ function sample(entry: FontEntry, ctx: DetailContext, stacked = false): SampleVi
     current.style.color = "var(--muted)";
   };
 
-  const paint = (weight: number, live: boolean): void => {
+  const paint = (axes: Record<string, number>, live: boolean): void => {
     if (available <= 0) return;
     requestSeq += 1;
     const seq = requestSeq;
@@ -167,7 +180,7 @@ function sample(entry: FontEntry, ctx: DetailContext, stacked = false): SampleVi
         fontSize: DETAIL_SAMPLE_SIZE,
         color,
         maxWidth: available,
-        weight,
+        axes,
         allowFallback,
       },
       (url, noGlyphs) => {
@@ -197,29 +210,85 @@ function sample(entry: FontEntry, ctx: DetailContext, stacked = false): SampleVi
     const style = getComputedStyle(box);
     const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
     available = Math.max(120, box.clientWidth - (Number.isFinite(padding) ? padding : 0));
-    paint(previewWeight(entry), false);
+    paint(previewAxes(entry), false);
   });
 
   return { box, apply: paint };
 }
 
-/** 可变字体的字重滑块：拖动实时预览，松手后把最终字重写入缓存。 */
-function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) => void): HTMLElement {
+/** 可变字体的可调轴；旧数据没有 axes 时用 wght 范围兜底。 */
+function axesOf(entry: FontEntry): FontAxis[] {
+  if (entry.axes?.length) return entry.axes;
+  if (entry.variable && entry.weightMax > entry.weightMin) {
+    return [{
+      tag: "wght",
+      min: entry.weightMin,
+      max: entry.weightMax,
+      default: previewWeight(entry) || entry.weightMin,
+    }];
+  }
+  return [];
+}
+
+/** 初始轴值：默认值；wght 优先 Regular 400，不在范围内时取中点。 */
+function previewAxes(entry: FontEntry): Record<string, number> {
+  const axes = axesOf(entry);
+  const values: Record<string, number> = {};
+  for (const axis of axes) values[axis.tag] = axis.default;
+  const weight = axes.find((axis) => axis.tag === "wght");
+  if (weight) values.wght = previewWeight(entry) || weight.default;
+  return values;
+}
+
+function axisLabel(tag: string): string {
+  switch (tag) {
+    case "wght":
+      return t("detail.weight");
+    case "wdth":
+      return t("axis.width");
+    case "slnt":
+      return t("axis.slant");
+    case "ital":
+      return t("axis.italic");
+    case "opsz":
+      return t("axis.opticalSize");
+    case "GRAD":
+      return t("axis.grade");
+    default:
+      return tag.toUpperCase();
+  }
+}
+
+function axisStep(axis: FontAxis): number {
+  return axis.max - axis.min <= 2 ? 0.1 : 1;
+}
+
+function axisText(value: number, step: number): string {
+  return step < 1 ? String(Number(value.toFixed(1))) : String(Math.round(value));
+}
+
+/** 单个可调轴：拖动实时预览，松手后把最终值写入缓存。 */
+function axisControl(
+  axis: FontAxis,
+  values: Record<string, number>,
+  apply: (axes: Record<string, number>, live: boolean) => void,
+): HTMLElement {
   const row = el("div", "detail__weight");
   const head = el("div", "detail__weight-head");
-  head.appendChild(el("span", "detail__weight-label", t("detail.weight")));
+  const label = axisLabel(axis.tag);
+  head.appendChild(el("span", "detail__weight-label", label));
 
-  const min = entry.weightMin;
-  const max = entry.weightMax;
-  const start = previewWeight(entry);
-  let current = start;
+  const min = axis.min;
+  const max = axis.max;
+  const step = axisStep(axis);
+  let current = values[axis.tag] ?? axis.default;
   let frame = 0;
   let dragging = false;
 
   const slider = el("div", "detail__slider");
   slider.tabIndex = 0;
   slider.setAttribute("role", "slider");
-  slider.setAttribute("aria-label", t("detail.weight"));
+  slider.setAttribute("aria-label", label);
   slider.setAttribute("aria-valuemin", String(min));
   slider.setAttribute("aria-valuemax", String(max));
 
@@ -229,9 +298,12 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
   track.append(fill, thumb);
   slider.appendChild(track);
 
-  const value = el("span", "detail__weight-value", String(start));
+  const value = el("span", "detail__weight-value", axisText(current, step));
   head.appendChild(value);
   row.append(head, slider);
+
+  const round = (next: number): number =>
+    Math.max(min, Math.min(max, Math.round((next - min) / step) * step + min));
 
   const syncView = (): void => {
     const percent = max > min ? ((current - min) / (max - min)) * 100 : 0;
@@ -240,23 +312,24 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
   };
 
   const setValue = (next: number, live: boolean): void => {
-    const clamped = Math.max(min, Math.min(max, Math.round(next)));
+    const clamped = round(next);
     if (clamped === current && live) return;
     current = clamped;
-    value.textContent = String(current);
+    values[axis.tag] = current;
+    value.textContent = axisText(current, step);
     syncView();
     if (live) {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        apply(current, true);
+        apply({ ...values }, true);
       });
     } else {
       if (frame) {
         cancelAnimationFrame(frame);
         frame = 0;
       }
-      apply(current, false);
+      apply({ ...values }, false);
     }
   };
 
@@ -280,7 +353,7 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
     if (!dragging) return;
     dragging = false;
     slider.classList.remove("is-dragging");
-    apply(current, false);
+    apply({ ...values }, false);
   };
 
   track.addEventListener("pointerdown", (event) => startDrag(event, true));
@@ -299,11 +372,11 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
     switch (event.key) {
       case "ArrowLeft":
       case "ArrowDown":
-        next -= 1;
+        next -= step;
         break;
       case "ArrowRight":
       case "ArrowUp":
-        next += 1;
+        next += step;
         break;
       case "Home":
         next = min;
@@ -312,10 +385,10 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
         next = max;
         break;
       case "PageDown":
-        next -= 10;
+        next -= step * 10;
         break;
       case "PageUp":
-        next += 10;
+        next += step * 10;
         break;
       default:
         return;
@@ -324,10 +397,113 @@ function weightControl(entry: FontEntry, apply: (weight: number, live: boolean) 
     setValue(next, false);
   });
 
+  current = round(current);
+  values[axis.tag] = current;
+  value.textContent = axisText(current, step);
   syncView();
   return row;
 }
-function emptyState(): HTMLElement {
+
+let axesPanel: HTMLElement | null = null;
+let axesPanelButton: HTMLButtonElement | null = null;
+let axesPanelCleanup: (() => void) | null = null;
+
+function closeAxesPanel(): void {
+  if (!axesPanel) return;
+  const panel = axesPanel;
+  axesPanel = null;
+  axesPanelCleanup?.();
+  axesPanelCleanup = null;
+  detachOverlayScrollbar(panel);
+  panel.remove();
+  axesPanelButton?.setAttribute("aria-expanded", "false");
+  axesPanelButton = null;
+}
+
+function openAxesPanel(
+  entry: FontEntry,
+  anchor: HTMLElement,
+  button: HTMLButtonElement,
+  apply: (axes: Record<string, number>, live: boolean) => void,
+): void {
+  closeAxesPanel();
+  axesPanelButton = button;
+  button.setAttribute("aria-expanded", "true");
+
+  const panel = el("div", "axes-popover");
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-label", t("detail.axes"));
+
+  const head = el("div", "axes-popover__head");
+  head.appendChild(el("span", "axes-popover__title", t("detail.axes")));
+  const reset = iconButton(
+    "reset",
+    t("detail.resetAxes"),
+    "btn btn--icon axes-popover__reset",
+  );
+  reset.addEventListener("click", () => {
+    apply(previewAxes(entry), false);
+    closeAxesPanel();
+    openAxesPanel(entry, anchor, button, apply);
+  });
+  head.appendChild(reset);
+  panel.appendChild(head);
+
+  const values = previewAxes(entry);
+  for (const axis of axesOf(entry)) {
+    panel.appendChild(axisControl(axis, values, apply));
+  }
+  document.body.appendChild(panel);
+  attachOverlayScrollbar(panel);
+
+  const rect = anchor.getBoundingClientRect();
+  panel.style.width = `${Math.round(rect.width)}px`;
+  panel.style.left = `${Math.max(4, Math.round(rect.left))}px`;
+  const top = Math.round(rect.bottom + 4);
+  panel.style.top = `${top}px`;
+  panel.style.maxHeight = `${Math.min(420, Math.max(120, window.innerHeight - top - 8))}px`;
+
+  const onOutside = (event: PointerEvent): void => {
+    const target = event.target as Node | null;
+    if (panel.contains(target) || button.contains(target)) return;
+    closeAxesPanel();
+  };
+  const onKey = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closeAxesPanel();
+    button.focus();
+  };
+  document.addEventListener("pointerdown", onOutside, true);
+  document.addEventListener("keydown", onKey, true);
+  axesPanelCleanup = () => {
+    document.removeEventListener("pointerdown", onOutside, true);
+    document.removeEventListener("keydown", onKey, true);
+  };
+  axesPanel = panel;
+}
+
+function axesConfigButton(
+  entry: FontEntry,
+  box: HTMLElement,
+  apply: (axes: Record<string, number>, live: boolean) => void,
+): HTMLButtonElement {
+  const button = iconButton(
+    "configuration",
+    t("detail.axes"),
+    "btn btn--icon detail__sample-config",
+  );
+  button.setAttribute("aria-haspopup", "dialog");
+  button.setAttribute("aria-expanded", "false");
+  button.addEventListener("click", () => {
+    if (axesPanel && axesPanelButton === button) {
+      closeAxesPanel();
+    } else {
+      openAxesPanel(entry, box, button, apply);
+    }
+  });
+  return button;
+}function emptyState(): HTMLElement {
   const empty = el("div", "detail__empty");
   empty.appendChild(
     el("div", "detail__empty-hint", t("list.detailEmptyHint")),
@@ -410,6 +586,7 @@ export function renderDetail(
   ctx: DetailContext,
   handlers: DetailHandlers,
 ): void {
+  closeAxesPanel();
   container.replaceChildren();
 
   if (entries.length === 0) {
@@ -424,7 +601,12 @@ export function renderDetail(
 
   const entry = entries[0];
   const head = el("div", "detail__head");
-  head.appendChild(el("h2", "detail__title", entry.family || entry.displayName));
+  const titleRow = el("div", "detail__title-row");
+  titleRow.appendChild(el("h2", "detail__title", entry.family || entry.displayName));
+  if (entry.variable) {
+    titleRow.appendChild(el("span", "tag detail__tag", t("detail.variableTag")));
+  }
+  head.appendChild(titleRow);
   const sub = el("div", "detail__sub");
   const style = styleLabel(entry);
   if (style) sub.appendChild(el("span", "", style));
@@ -433,8 +615,8 @@ export function renderDetail(
 
   const sampleView = sample(entry, ctx);
   container.appendChild(sampleView.box);
-  if (entry.variable && entry.weightMax > entry.weightMin) {
-    container.appendChild(weightControl(entry, sampleView.apply));
+  if (axesOf(entry).length > 0) {
+    sampleView.box.appendChild(axesConfigButton(entry, sampleView.box, sampleView.apply));
   }
 
   const actions = el("div", "detail__actions");
@@ -499,6 +681,7 @@ export function renderDetail(
       t("detail.language"),
       entry.languages?.length ? languageList(entry.languages) : t("language.unknown"),
     ),
+    kv(t("detail.features"), featureList([entry])),
   );
   if (entry.version) fontRows.push(kv(t("detail.version"), entry.version));
   if (entry.copyright) fontRows.push(kv(t("detail.copyright"), entry.copyright));
@@ -557,6 +740,7 @@ export function renderFamilyDetail(
   ctx: DetailContext,
   handlers: DetailHandlers,
 ): void {
+  closeAxesPanel();
   container.replaceChildren();
   if (entries.length === 0) {
     container.appendChild(emptyState());
@@ -576,8 +760,8 @@ export function renderFamilyDetail(
   // 预览用首个字重，背景加「堆叠」示意——表示这是一个字族而不是单个文件
   const sampleView = sample(entries[0], ctx, true);
   container.appendChild(sampleView.box);
-  if (entries[0].variable && entries[0].weightMax > entries[0].weightMin) {
-    container.appendChild(weightControl(entries[0], sampleView.apply));
+  if (axesOf(entries[0]).length > 0) {
+    sampleView.box.appendChild(axesConfigButton(entries[0], sampleView.box, sampleView.apply));
   }
 
   const actions = el("div", "detail__actions");
@@ -645,6 +829,7 @@ export function renderFamilyDetail(
       t("detail.language"),
       languages.length ? languageList(languages) : t("language.unknown"),
     ),
+    kv(t("detail.features"), featureList(entries)),
   );
   const version = entries.find((entry) => entry.version)?.version;
   if (version) info.push(kv(t("detail.version"), version));

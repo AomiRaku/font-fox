@@ -11,6 +11,8 @@ use memmap2::Mmap;
 
 use ttf_parser::{name_id, Face, PlatformId};
 
+use crate::model::FontAxis;
+
 /// 从字体文件中读到的最小元信息集合。
 #[derive(Debug, Clone, Default)]
 pub struct FontMeta {
@@ -33,6 +35,10 @@ pub struct FontMeta {
     pub monospace: bool,
     /// 含连字特性（GSUB 里的 liga / clig）。
     pub ligatures: bool,
+    /// 含 TrueType hinting 表（fpgm / prep / cvt）。
+    pub hinting: bool,
+    /// 可变字体的全部可调轴。
+    pub axes: Vec<FontAxis>,
     /// 文件内所有 face 的家族名（TTC 时会有多个）。
     pub families: Vec<String>,
     pub format: String,
@@ -44,6 +50,25 @@ fn system_ui_language() -> u16 {
 }
 
 /// 可变字体的 `wght` 轴范围；非可变字体返回 `(0, 0)`。
+fn axes_of(face: &Face) -> Vec<FontAxis> {
+    let Some(fvar) = face.tables().fvar else {
+        return Vec::new();
+    };
+    let mut axes = Vec::new();
+    for axis in fvar.axes {
+        if axis.hidden || axis.max_value <= axis.min_value {
+            continue;
+        }
+        axes.push(FontAxis {
+            tag: String::from_utf8_lossy(&axis.tag.to_bytes()).to_string(),
+            min: axis.min_value,
+            max: axis.max_value,
+            default: axis.def_value,
+        });
+    }
+    axes
+}
+
 fn weight_range(face: &Face) -> (u16, u16) {
     let Some(fvar) = face.tables().fvar else {
         return (0, 0);
@@ -225,6 +250,47 @@ fn format_of(path: &Path, data: &[u8]) -> String {
 }
 
 /// GSUB 的 featureList 里是否包含指定标签。
+fn has_hinting(face: &Face) -> bool {
+    let raw = face.raw_face();
+    let has_program = [b"fpgm", b"prep"].iter().any(|tag| {
+        raw.table(ttf_parser::Tag::from_bytes(*tag)).is_some()
+    });
+    if !has_program {
+        return false;
+    }
+    // maxp v1.0 的 maxSizeOfInstructions 为 0 时，没有实际 glyph 指令，
+    // 仅有残留的 fpgm / prep / cvt 表，不计为 Hinting。
+    let Some(maxp) = raw.table(ttf_parser::Tag::from_bytes(b"maxp")) else {
+        return false;
+    };
+    if maxp.len() < 28 {
+        return false;
+    }
+    let version = u32::from_be_bytes([maxp[0], maxp[1], maxp[2], maxp[3]]);
+    if version != 0x0001_0000 || u16::from_be_bytes([maxp[26], maxp[27]]) == 0 {
+        return false;
+    }
+    // 只有 gasp 中启用 grid-fitting 时，Windows 才会在相应字号应用 hinting。
+    let Some(gasp) = raw.table(ttf_parser::Tag::from_bytes(b"gasp")) else {
+        return false;
+    };
+    if gasp.len() < 4 {
+        return false;
+    }
+    let count = u16::from_be_bytes([gasp[2], gasp[3]]) as usize;
+    for i in 0..count {
+        let record = 4 + i * 4;
+        let Some(flags) = gasp.get(record + 2..record + 4) else {
+            return false;
+        };
+        if u16::from_be_bytes([flags[0], flags[1]]) & 1 != 0 {
+            return true;
+        }
+    }
+    false
+}
+
+/// GSUB 的 featureList 里是否包含指定标签。
 fn has_gsub_feature(face: &Face, wanted: &[&[u8; 4]]) -> bool {
     let Some(gsub) = face.raw_face().table(ttf_parser::Tag::from_bytes(b"GSUB")) else {
         return false;
@@ -320,6 +386,8 @@ pub fn read_meta(path: &Path, hint: &str) -> Option<FontMeta> {
             weight_max: weight.1,
             monospace: face.is_monospaced(),
             ligatures: has_gsub_feature(&face, &[b"liga", b"clig"]),
+            hinting: has_hinting(&face),
+            axes: axes_of(&face),
             version: pick_name(&face, name_id::VERSION, ui_lang).unwrap_or_default(),
             copyright: pick_name(&face, name_id::COPYRIGHT_NOTICE, ui_lang).unwrap_or_default(),
             format: format.clone(),

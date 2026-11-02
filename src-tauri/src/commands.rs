@@ -3,6 +3,7 @@
 
 //! 暴露给前端的 Tauri 命令；文件系统与注册表操作放入阻塞线程。
 
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 static HIDDEN_LOCK: Mutex<()> = Mutex::new(());
@@ -802,15 +803,19 @@ pub async fn render_preview(
     dpr: f32,
     max_width: Option<f32>,
     weight: Option<f32>,
+    axes: Option<HashMap<String, f32>>,
     fresh: Option<bool>,
     fallback: Option<bool>,
 ) -> Result<String, String> {
     let max_width = max_width.unwrap_or(0.0);
     let weight = weight.unwrap_or(0.0);
+    let axes = axes.unwrap_or_default();
     let fresh = fresh.unwrap_or(false);
     let fallback = fallback.unwrap_or(true);
     tauri::async_runtime::spawn_blocking(move || {
-        crate::preview::render(&path, &text, size, &color, dpr, max_width, weight, fresh, fallback)
+        crate::preview::render(
+            &path, &text, size, &color, dpr, max_width, weight, &axes, fresh, fallback,
+        )
     })
     .await
     .map_err(|error| error.to_string())?

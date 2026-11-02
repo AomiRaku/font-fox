@@ -182,6 +182,8 @@ pub fn scan() -> FontListPayload {
                 weight_max: meta.as_ref().map(|m| m.weight_max).unwrap_or(0),
                 monospace: meta.as_ref().map(|m| m.monospace).unwrap_or(false),
                 ligatures: meta.as_ref().map(|m| m.ligatures).unwrap_or(false),
+  hinting: meta.as_ref().map(|m| m.hinting).unwrap_or(false),
+  axes: meta.as_ref().map(|m| m.axes.clone()).unwrap_or_default(),
                 scope: raw.scope,
                 file_name,
                 path: raw.path.as_os_str().to_string_lossy().to_string(),

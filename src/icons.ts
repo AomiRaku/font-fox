@@ -7,6 +7,8 @@
 
 import add from "@siemens/ix-icons/svg/add.svg?raw";
 import chevronDown from "@siemens/ix-icons/svg/chevron-down.svg?raw";
+import configuration from "@siemens/ix-icons/svg/configuration.svg?raw";
+import reset from "@siemens/ix-icons/svg/reset.svg?raw";
 import dataTypeString from "@siemens/ix-icons/svg/data-type-string.svg?raw";
 import filter from "@siemens/ix-icons/svg/filter.svg?raw";
 import filterFilled from "@siemens/ix-icons/svg/filter-filled.svg?raw";
@@ -44,6 +46,8 @@ import trashcan from "@siemens/ix-icons/svg/trashcan-filled.svg?raw";
 const SOURCES = {
   add,
   "chevron-down": chevronDown,
+  configuration,
+  reset,
   "data-type-string": dataTypeString,
   filter,
   "filter-filled": filterFilled,

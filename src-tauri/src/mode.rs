@@ -252,6 +252,8 @@ pub fn merged_entries(fonts: &mut Vec<FontEntry>) {
             weight_max: 0,
             monospace: false,
             ligatures: false,
+            hinting: false,
+            axes: Vec::new(),
             scope: Scope::User,
             file_name: path
                 .file_name()

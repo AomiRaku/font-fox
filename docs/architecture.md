@@ -20,7 +20,7 @@
 | `src/main.ts` | 应用入口：状态、渲染编排、事件绑定、启动流程 |
 | `src/list.ts` | 虚拟列表（行高、偏移、可见区间、滚动锚定） |
 | `src/rows.ts` | 行 DOM：字体行、字族行、分组带 |
-| `src/detail.ts` | 详情面板（单字体 / 字族 / 多选 / 空态，含可变字体字重滑块） |
+| `src/detail.ts` | 详情面板（单字体 / 字族 / 多选 / 空态，含可变字体全部轴滑块） |
 | `src/filtermenu.ts` | 筛选菜单（分类 tab + 选项面板 + 清除筛选） |
 | `src/contextmenu.ts` | 右键菜单与二级菜单（「添加到字体单」） |
 | `src/dropdown.ts` | 自定义下拉框 |

@@ -24,6 +24,8 @@ export interface PreviewRequest {
   maxWidth?: number;
   /** 可变字体的 `wght` 值；0 / 缺省表示不实例化 */
   weight?: number;
+  /** 可变字体轴值；键为四字符标签。 */
+  axes?: Record<string, number>;
   /**
    * 预览文字缺字时是否回退到字体自身字符集。
    * 默认预览文字为 true；用户手动输入的预览文字为 false（改为显示提示）。
@@ -50,7 +52,11 @@ export function styleLabel(entry: FontEntry): string {
 
 function keyOf(request: PreviewRequest): string {
   const dpr = window.devicePixelRatio || 1;
-  return `${request.entry.path}|${request.fontSize}|${request.color}|${dpr}|${request.maxWidth ?? 0}|${request.weight ?? 0}|${request.allowFallback !== false}|${request.text}`;
+  const axes = Object.entries(request.axes ?? {})
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([tag, value]) => `${tag}=${value}`)
+    .join(",");
+  return `${request.entry.path}|${request.fontSize}|${request.color}|${dpr}|${request.maxWidth ?? 0}|${request.weight ?? 0}|${axes}|${request.allowFallback !== false}|${request.text}`;
 }
 
 /** 把 `rgb(r, g, b)` / `#rrggbb` 统一成 `#rrggbb`。 */
@@ -183,6 +189,7 @@ export class PreviewPool {
       dpr,
       maxWidth: request.maxWidth && request.maxWidth > 0 ? request.maxWidth : null,
       weight: request.weight && request.weight > 0 ? request.weight : null,
+      axes: request.axes ?? null,
       fresh,
       fallback: request.allowFallback !== false,
     });

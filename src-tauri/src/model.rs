@@ -56,6 +56,16 @@ impl Protection {
     }
 }
 
+/// 可变字体的一个可调轴。
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct FontAxis {
+    /// 四字符轴标签，例如 `wght` / `wdth`。
+    pub tag: String,
+    pub min: f32,
+    pub max: f32,
+    pub default: f32,
+}
 /// 一条字体记录 = 一个注册表值 + 它指向的字体文件。
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -86,6 +96,12 @@ pub struct FontEntry {
     pub monospace: bool,
     /// 含连字特性（GSUB 的 liga / clig）。
     pub ligatures: bool,
+    /// 含 TrueType hinting 表（fpgm / prep / cvt）。
+    #[serde(default)]
+    pub hinting: bool,
+    /// 可变字体的全部可调轴。
+    #[serde(default)]
+    pub axes: Vec<FontAxis>,
     pub scope: Scope,
     pub file_name: String,
     /// 解析后的绝对路径（`\` 分隔）。

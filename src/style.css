@@ -26,6 +26,7 @@
 
   /* 尺寸 */
   --radius: 2px;
+  --menu-radius: 3px;
   --control-h: 32px;
   --slider-thumb: #1e1e1e;
   --titlebar-h: 40px;
@@ -1445,7 +1446,7 @@ textarea:disabled {
   padding: 6px;
   background: var(--bg-raised);
   border: 1px solid var(--popover-line);
-  border-radius: var(--radius);
+  border-radius: var(--menu-radius);
   box-shadow: var(--shadow-menu-soft);
 }
 
@@ -1623,6 +1624,7 @@ html[data-detail-ready="true"] .pane--detail {
 }
 
 .detail__sample {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1630,9 +1632,80 @@ html[data-detail-ready="true"] .pane--detail {
   aspect-ratio: 4 / 3;
   margin-bottom: var(--sp-4);
   padding: var(--sp-4);
-  background: var(--bg-raised);
+  background: color-mix(in srgb, var(--bg-raised) 50%, transparent);
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+.detail__sample-config {
+  position: absolute;
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: var(--muted);
+  opacity: 0.72;
+  z-index: 2;
+}
+
+.detail__sample-config:hover {
+  color: var(--ink);
+  opacity: 1;
+}
+
+.detail__sample-config .btn__icon {
+  width: 18px;
+  height: 18px;
+}
+
+.detail__sample-config[aria-expanded="true"] {
+  background: var(--control-bg-active);
+  color: var(--ink);
+  opacity: 1;
+}
+
+.axes-popover {
+  position: fixed;
+  z-index: 300;
+  box-sizing: border-box;
+  padding: 4px var(--sp-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background: var(--bg-raised);
+  border: 1px solid var(--popover-line);
+  border-radius: var(--menu-radius);
+  box-shadow: var(--shadow-menu);
+  animation: ctx-fade 50ms linear both;
+}
+
+.axes-popover::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.axes-popover__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-1) 0;
+}
+
+.axes-popover__title {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+
+.axes-popover__reset {
+  width: 24px;
+  height: 24px;
+  color: var(--muted);
+}
+
+.axes-popover .detail__weight {
+  padding: 8px 0;
 }
 
 .detail__sample-text {
@@ -1646,10 +1719,7 @@ html[data-detail-ready="true"] .pane--detail {
   line-height: 1.4;
 }
 
-/* 可变字体：字重滑块位于预览图与操作区之间，上下留白一致 */
-.detail__sample:has(+ .detail__weight) {
-  margin-bottom: 0;
-}
+
 
 .detail__weight {
   display: flex;
@@ -2751,7 +2821,7 @@ html[data-detail="closed"] .pane--detail {
   padding: var(--sp-1) 0;
   background: var(--bg-raised);
   border: 1px solid var(--popover-line);
-  border-radius: var(--radius);
+  border-radius: var(--menu-radius);
   box-shadow: var(--shadow-menu);
   animation: ctx-fade 50ms linear both;
   user-select: none;
@@ -2839,7 +2909,7 @@ html[data-detail="closed"] .pane--detail {
   display: flex;
   max-height: calc(8 * var(--fmenu-tab-h));
   border: 1px solid var(--popover-line);
-  border-radius: var(--radius);
+  border-radius: var(--menu-radius);
   background: var(--bg-raised);
   box-shadow: var(--shadow-menu);
   overflow: hidden;
@@ -3172,7 +3242,7 @@ html[data-detail="closed"] .pane--detail {
   padding: var(--sp-1) 0;
   background: var(--bg-raised);
   border: 1px solid var(--popover-line);
-  border-radius: var(--radius);
+  border-radius: var(--menu-radius);
   box-shadow: var(--shadow-menu);
 }
 

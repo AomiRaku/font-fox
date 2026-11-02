@@ -60,6 +60,10 @@ export interface FontEntry {
   monospace: boolean;
   /** 含连字特性（GSUB 的 liga / clig）。 */
   ligatures: boolean;
+  /** 含 TrueType hinting 表。 */
+  hinting: boolean;
+  /** 可变字体的全部可调轴。 */
+  axes: FontAxis[];
   scope: Scope;
   fileName: string;
   path: string;
@@ -135,6 +139,14 @@ export interface Settings {
   disableMode: DisableMode;
   /** 下次启动时应用的禁用方式；空串表示没有待应用变更。 */
   disableModeNext: DisableMode | "";
+}
+
+export interface FontAxis {
+  /** 四字符轴标签：wght / wdth / slnt / ital / opsz … */
+  tag: string;
+  min: number;
+  max: number;
+  default: number;
 }
 
 export type DisableMode = "windows" | "dynamic";
