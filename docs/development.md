@@ -185,6 +185,7 @@ tools/              语言包复制、第三方许可证生成、设计稿解析
 - 语言包是 exe 同级的 `lang/<id>.ini`：`predev` / `prebuild` 由 `tools/copy-lang.mjs` 复制，
   `build.rs` 在编译期再兜底一次，打包时按 `bundle.resources` 映射进安装目录。复制时目标目录里
   存在、但 `langBuild` 已没有的 `.ini` 会被删除。改文案编辑 `langBuild/zh-cn.ini`，重新构建后会复制到 exe 同级 `lang/`。
+- 用户自建的 `lang/<id>.ini` 不属于安装包资源清单；升级安装只覆盖内置资源，不会清空 `lang/`，因此会保留。若用户文件与内置文件同名，更新会覆盖内置同名文件；手动卸载或更换安装目录不在保留保证内。
 - 每个语言包在 `[meta]` 中提供 `LanguageCode`（BCP 47，如 `zh-CN`）。设置默认值为「使用系统语言」：
   通过 `GetUserDefaultLocaleName` 读取系统 locale，先精确匹配代码；简体中文区域（`zh-Hans` / `zh-SG` / `zh-MY` / `zh-CN`）未命中回退 `zh-CN`，繁体区域（`zh-Hant` / `zh-TW`）回退 `zh-TW`，其余 `zh-*` 回退 `zh-HK`；其他语言未命中时优先同主语言，再回退 `en-US`，仍缺失再回退 `zh-CN`（`zh-cn.ini`）。回退时设置仍保持「使用系统语言」。
 

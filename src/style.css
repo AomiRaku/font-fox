@@ -90,8 +90,8 @@
 
   /* 前景 */
   --ink: #1a1a1c;
-  --ink-soft: #3f4247;
-  --muted: #8a8f98;
+  --ink-soft: rgba(0, 0, 0, 0.75);
+  --muted: rgba(0, 0, 0, 0.44);
 
   /* 线 */
   --line: rgba(0, 0, 0, 0.08);
@@ -161,8 +161,8 @@ html[data-theme="dark"] {
 
   --ink: #f7f8f8;
   --logo-ink: #ffffff;
-  --ink-soft: #d0d6e0;
-  --muted: #70757d;
+  --ink-soft: rgba(255, 255, 255, 0.82);
+  --muted: rgba(255, 255, 255, 0.38);
 
   --line: rgba(255, 255, 255, 0.08);
   --line-strong: rgba(255, 255, 255, 0.14);
