@@ -2610,7 +2610,7 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   align-items: center;
   gap: var(--sp-2);
   /* 左沿对齐字体单标记，右沿对齐数量列 */
-  padding: var(--sp-2) calc(var(--sp-3) + var(--sp-2)) var(--sp-2) calc(var(--sp-3) + var(--sp-1) + 1px);
+  padding: var(--sp-2) calc(var(--sp-3) + var(--sp-2)) var(--sp-1) calc(var(--sp-3) + var(--sp-1) + 1px);
 }
 
 .sidebar__section-head {
@@ -2640,9 +2640,10 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  position: relative;
   overflow-y: auto;
   /* 左右留白与导航区一致，右侧数量才能和上方导航项对齐 */
-  padding: 0 var(--sp-3) 0 var(--sp-2);
+  padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-2);
   scrollbar-width: none;
 }
 
@@ -2655,6 +2656,22 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   height: 32px;
   flex: 0 0 auto;
   padding-left: calc(var(--sp-2) + 1px);
+}
+
+.sidebar__item--sub.is-dragging {
+  opacity: 0.45;
+}
+
+.collection-drop-line {
+  position: absolute;
+  left: calc(var(--sp-2) + var(--sp-2));
+  right: calc(var(--sp-3) + var(--sp-2));
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .sidebar__name {

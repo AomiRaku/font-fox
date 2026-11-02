@@ -3522,6 +3522,7 @@ function bindShellBehavior(): void {
   document.addEventListener(
     "dragstart",
     (event) => {
+      if ((event.target as HTMLElement | null)?.closest(".sidebar__item--sub")) return;
       event.preventDefault();
     },
     true,
@@ -3673,6 +3674,7 @@ function renderSidebar(): void {
   collections.forEach((collection, index) => {
     const item = el("button", "sidebar__item sidebar__item--sub");
     item.type = "button";
+    item.draggable = true;
     item.dataset.id = collection.id;
     if (state.view.kind === "collection" && state.view.id === collection.id) {
       item.classList.add("is-active");
@@ -4176,6 +4178,113 @@ function bindSidebar(): void {
       event.clientY,
       { onClose: () => item.classList.remove("is-ctx") },
     );
+  });
+
+  let collectionDragId: string | null = null;
+  let collectionDropIndex: number | null = null;
+
+  const ensureCollectionDropLine = (): HTMLElement => {
+    let line = dom.collections.querySelector<HTMLElement>(".collection-drop-line");
+    if (!line) {
+      line = document.createElement("div");
+      line.className = "collection-drop-line";
+      line.hidden = true;
+      dom.collections.appendChild(line);
+    }
+    return line;
+  };
+
+  const hideCollectionDropLine = (): void => {
+    collectionDropIndex = null;
+    const line = dom.collections.querySelector<HTMLElement>(".collection-drop-line");
+    if (line) line.hidden = true;
+  };
+
+  const clearCollectionDropState = (): void => {
+    for (const node of dom.collections.querySelectorAll<HTMLElement>(".is-dragging")) {
+      node.classList.remove("is-dragging");
+    }
+    hideCollectionDropLine();
+    collectionDragId = null;
+  };
+
+  const showCollectionDropLine = (index: number, y: number): void => {
+    collectionDropIndex = index;
+    const line = ensureCollectionDropLine();
+    line.hidden = false;
+    line.style.top = `${y}px`;
+  };
+
+  dom.collections.addEventListener("dragstart", (event) => {
+    const item = (event.target as HTMLElement).closest<HTMLElement>(".sidebar__item--sub");
+    const id = item?.dataset.id;
+    if (!item || !id) return;
+    collectionDragId = id;
+    item.classList.add("is-dragging");
+    event.dataTransfer?.setData("text/plain", id);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  });
+
+  dom.collections.addEventListener("dragover", (event) => {
+    if (!collectionDragId) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+
+    const items = [...dom.collections.querySelectorAll<HTMLElement>(".sidebar__item--sub")];
+    if (items.length === 0) {
+      hideCollectionDropLine();
+      return;
+    }
+
+    // 用指针纵坐标计算插入位，不依赖 dragover 的 target：
+    // 指针落在条目间 2px 空隙或容器空白时，target 会变成容器，导致线跳到末尾。
+    let index = items.length;
+    for (let i = 0; i < items.length; i += 1) {
+      const rect = items[i].getBoundingClientRect();
+      if (event.clientY < rect.top + rect.height / 2) {
+        index = i;
+        break;
+      }
+    }
+    const last = items[items.length - 1];
+    const y =
+      index === 0
+        ? Math.max(0, items[0].offsetTop - 2)
+        : index === items.length
+          ? last.offsetTop + last.offsetHeight
+          : items[index].offsetTop - 2;
+    showCollectionDropLine(index, y);
+  });
+
+  dom.collections.addEventListener("dragleave", (event) => {
+    if (!dom.collections.contains(event.relatedTarget as Node | null)) hideCollectionDropLine();
+  });
+
+  dom.collections.addEventListener("drop", (event) => {
+    if (!collectionDragId) return;
+    event.preventDefault();
+    const from = state.library.collections.findIndex(
+      (collection) => collection.id === collectionDragId,
+    );
+    const to = collectionDropIndex;
+    if (from < 0 || to === null) {
+      clearCollectionDropState();
+      return;
+    }
+    const collections = state.library.collections;
+    const [moved] = collections.splice(from, 1);
+    if (to > from) {
+      collections.splice(to - 1, 0, moved);
+    } else {
+      collections.splice(to, 0, moved);
+    }
+    clearCollectionDropState();
+    scheduleLibrarySave();
+    renderSidebar();
+  });
+
+  dom.collections.addEventListener("dragend", () => {
+    clearCollectionDropState();
   });
   renderSidebar();
 }
