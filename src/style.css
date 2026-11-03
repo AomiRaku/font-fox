@@ -112,9 +112,9 @@
   /* 语义色 */
   /* 开关：开=深色轨道 + 浅色滑块，关=浅色轨道 + 中灰滑块 */
   --switch-track-off: rgba(0, 0, 0, 0.1);
-  --switch-track-off-hover: rgba(0, 0, 0, 0.18);
+  --switch-track-off-hover: rgba(0, 0, 0, 0.2);
   --switch-track-on: rgba(0, 0, 0, 0.88);
-  --switch-track-on-hover: rgba(0, 0, 0, 0.72);
+  --switch-track-on-hover: rgba(0, 0, 0, 0.68);
   --switch-knob-off: #808080;
   --switch-knob-on: #e3e3e3;
   --switch-track-off-disabled: rgba(0, 0, 0, 0.06);
@@ -182,9 +182,9 @@ html[data-theme="dark"] {
 
   /* 语义色 */
   --switch-track-off: rgba(255, 255, 255, 0.2);
-  --switch-track-off-hover: rgba(255, 255, 255, 0.3);
+  --switch-track-off-hover: rgba(255, 255, 255, 0.34);
   --switch-track-on: rgba(255, 255, 255, 0.88);
-  --switch-track-on-hover: rgba(255, 255, 255, 0.72);
+  --switch-track-on-hover: rgba(255, 255, 255, 0.68);
   --switch-knob-off: #8b8f96;
   --switch-knob-on: #1a1b1d;
   --switch-track-off-disabled: rgba(255, 255, 255, 0.08);
@@ -2363,23 +2363,9 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   border-radius: 1px;
   background: var(--switch-knob-off);
   transform: translateX(0);
-  /* 悬停用整数宽高过渡，避免 transform 缩放产生亚像素内边距 */
   transition:
     transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    width 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    height 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    top 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    left 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
     background 200ms ease;
-}
-
-/* 悬停时手柄略微放大（放大不参与位移，缩放中心就是手柄中心） */
-.switch:not(:disabled):hover .switch__knob {
-  top: 1px;
-  left: 1px;
-  width: 11px;
-  height: 14px;
-  transform: translateX(0);
 }
 
 .switch[aria-checked="true"] {
@@ -2389,14 +2375,6 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
 .switch[aria-checked="true"] .switch__knob {
   transform: translateX(17px);
   background: var(--switch-knob-on);
-}
-
-.switch[aria-checked="true"]:not(:disabled):hover .switch__knob {
-  top: 1px;
-  left: 1px;
-  width: 11px;
-  height: 14px;
-  transform: translateX(17px);
 }
 
 .switch:not(:disabled):hover {
