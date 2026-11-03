@@ -3800,6 +3800,7 @@ function applyDetailOpen(open: boolean): void {
   state.settings.detailOpen = open;
   document.documentElement.dataset.detail = open ? "open" : "closed";
   dom.detailToggle.setAttribute("aria-pressed", String(open));
+  dom.detailToggle.classList.toggle("is-active", open);
   const label = open ? t("toolbar.hideDetail") : t("toolbar.showDetail");
   dom.detailToggle.title = label;
   dom.detailToggle.setAttribute("aria-label", label);

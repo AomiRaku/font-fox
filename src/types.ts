@@ -191,7 +191,7 @@ export const DEFAULT_SETTINGS: Settings = {
   updateSource: "github",
   ignoredUpdateVersion: "",
   detailOpen: true,
-  autoDetail: true,
+  autoDetail: false,
   rowHover: false,
   micaMode: "sidebar",
   disableMode: "dynamic",
