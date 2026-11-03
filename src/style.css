@@ -2585,6 +2585,11 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   height: auto;
   margin-left: 4px;
   pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+
+html[data-focused="false"] .brand__logo {
+  opacity: 0.5;
 }
 
 .brand__logo .logo-mark {
