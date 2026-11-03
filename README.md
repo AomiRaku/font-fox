@@ -46,9 +46,9 @@ FontFox 包含以下功能：
 
 界面截图：
 
-![主界面](docs/screenshots/light-compact.png)
+![主界面](docs/screenshots/light-compact.webp)
 
-![主界面](docs/screenshots/light-preview.png)
+![主界面](docs/screenshots/light-preview.webp)
 
 
 

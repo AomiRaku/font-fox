@@ -41,9 +41,9 @@ FontFox includes the following features:
 
 Screenshots:
 
-![Main window](docs/screenshots/light-compact.png)
+![Main window](docs/screenshots/light-compact.webp)
 
-![Main window](docs/screenshots/light-preview.png)
+![Main window](docs/screenshots/light-preview.webp)
 
 ## System Requirements
 
