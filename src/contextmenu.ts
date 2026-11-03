@@ -94,7 +94,7 @@ export function openContextMenu(
   items: MenuItem[],
   x: number,
   y: number,
-  options: { above?: boolean; alignRight?: boolean; onClose?: () => void; note?: string } = {},
+  options: { above?: boolean; alignRight?: boolean; onClose?: () => void; note?: string; anchor?: HTMLElement } = {},
 ): void {
   closeContextMenu();
   if (items.length === 0) return;
@@ -157,7 +157,7 @@ export function openContextMenu(
   const onPointerDown = (event: PointerEvent): void => {
     const target = event.target as Node | null;
     // 二级菜单是独立节点，命中它时不能关掉整组菜单
-    if (menu.contains(target) || openSubmenuEl?.contains(target)) return;
+    if (menu.contains(target) || openSubmenuEl?.contains(target) || options.anchor?.contains(target)) return;
     closeContextMenu();
   };
   const onKeyDown = (event: KeyboardEvent): void => {

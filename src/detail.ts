@@ -5,7 +5,7 @@
 
 import { icon } from "./icons";
 import { languageList, t } from "./i18n";
-import { openContextMenu, type MenuItem } from "./contextmenu";
+import { closeContextMenu, openContextMenu, type MenuItem } from "./contextmenu";
 import {
   defaultPreviewText,
   PREVIEW_FONT_SIZE,
@@ -32,6 +32,7 @@ export interface DetailHandlers {
   reveal(entry: FontEntry): void;
   /** 多选视图：把当前列表里未选中的字体选上、已选中的取消。 */
   invertSelection(): void;
+  clearSelection(): void;
 }
 
 export interface DetailContext {
@@ -72,9 +73,24 @@ function iconButton(
 /** 详情操作区的三点菜单；菜单右边缘与按钮对齐。 */
 function actionsMenu(items: MenuItem[]): HTMLButtonElement {
   const button = iconButton("context-menu", t("detail.actionsMenu"), "btn btn--icon detail__menu");
+  button.setAttribute("aria-haspopup", "menu");
+  button.setAttribute("aria-expanded", "false");
   button.addEventListener("click", () => {
+    if (button.classList.contains("is-open")) {
+      closeContextMenu();
+      return;
+    }
     const rect = button.getBoundingClientRect();
-    openContextMenu(items, rect.right, rect.bottom + 4, { alignRight: true });
+    button.classList.add("is-open");
+    button.setAttribute("aria-expanded", "true");
+    openContextMenu(items, rect.right, rect.bottom + 4, {
+      alignRight: true,
+      anchor: button,
+      onClose: () => {
+        button.classList.remove("is-open");
+        button.setAttribute("aria-expanded", "false");
+      },
+    });
   });
   return button;
 }
@@ -554,6 +570,10 @@ function multiPane(
   invert.type = "button";
   invert.addEventListener("click", () => handlers.invertSelection());
   secondary.appendChild(invert);
+  const clear = el("button", "btn btn--solid", t("detail.clearSelection"));
+  clear.type = "button";
+  clear.addEventListener("click", () => handlers.clearSelection());
+  secondary.appendChild(clear);
   fragment.appendChild(secondary);
 
   const menuItems: MenuItem[] = [];

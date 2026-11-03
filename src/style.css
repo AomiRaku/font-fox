@@ -112,7 +112,9 @@
   /* 语义色 */
   /* 开关：开=深色轨道 + 浅色滑块，关=浅色轨道 + 中灰滑块 */
   --switch-track-off: rgba(0, 0, 0, 0.1);
+  --switch-track-off-hover: rgba(0, 0, 0, 0.18);
   --switch-track-on: rgba(0, 0, 0, 0.88);
+  --switch-track-on-hover: rgba(0, 0, 0, 0.72);
   --switch-knob-off: #808080;
   --switch-knob-on: #e3e3e3;
   --switch-track-off-disabled: rgba(0, 0, 0, 0.06);
@@ -180,7 +182,9 @@ html[data-theme="dark"] {
 
   /* 语义色 */
   --switch-track-off: rgba(255, 255, 255, 0.2);
+  --switch-track-off-hover: rgba(255, 255, 255, 0.3);
   --switch-track-on: rgba(255, 255, 255, 0.88);
+  --switch-track-on-hover: rgba(255, 255, 255, 0.72);
   --switch-knob-off: #8b8f96;
   --switch-knob-on: #1a1b1d;
   --switch-track-off-disabled: rgba(255, 255, 255, 0.08);
@@ -289,7 +293,7 @@ select {
 }
 
 button {
-  cursor: pointer;
+  cursor: default;
 }
 
 /* 键盘焦点不画外轮廓：蓝框贴着控件边缘时视觉上很突兀（输入框仍有自身的下划线反馈） */
@@ -561,7 +565,6 @@ button {
   border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
-  cursor: pointer;
 }
 
 .field__clear[hidden] {
@@ -719,7 +722,6 @@ html[data-maximized="true"] .icon-restore {
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: pointer;
 }
 
 /* 全选时显示与选中标记同宽的小方块；悬停时同样的方块半透明 */
@@ -1853,7 +1855,12 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
 
 .detail__menu {
   height: var(--control-h);
-  color: var(--muted);
+  color: var(--ink-soft);
+}
+
+.detail__menu.is-open {
+  background: var(--control-bg-active);
+  color: var(--ink);
 }
 
 /* 按钮按文字自适应宽度，不铺满整行 */
@@ -2342,7 +2349,6 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   border: 0;
   border-radius: 2px;
   background: var(--switch-track-off);
-  cursor: pointer;
   overflow: visible;
   transition: background 200ms ease;
 }
@@ -2391,6 +2397,14 @@ html[data-theme="dark"] .detail__slider-track:hover .detail__slider-fill {
   width: 11px;
   height: 14px;
   transform: translateX(17px);
+}
+
+.switch:not(:disabled):hover {
+  background: var(--switch-track-off-hover);
+}
+
+.switch[aria-checked="true"]:not(:disabled):hover {
+  background: var(--switch-track-on-hover);
 }
 
 
@@ -3089,7 +3103,6 @@ html[data-detail="closed"] .pane--detail {
   color: var(--ink-soft);
   font: inherit;
   font-size: var(--fs-xs);
-  cursor: pointer;
 }
 
 .family__expand:hover {
@@ -3401,6 +3414,7 @@ html[data-theme="dark"] .about__wordmark--dark {
 }
 
 .link {
+  cursor: pointer;
   text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 2px;

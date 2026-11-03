@@ -1696,6 +1696,7 @@ function renderDetailPane(): void {
               .catch((err) => toast(errorText(err), true));
           },
           invertSelection: () => invertSelection(),
+          clearSelection: () => clearSelection(),
         },
       );
       attachOverlayScrollbar(dom.detail.querySelector<HTMLElement>(".detail__scroll"));
@@ -1739,6 +1740,7 @@ function renderDetailPane(): void {
           .catch((err) => toast(errorText(err), true));
       },
       invertSelection: () => invertSelection(),
+      clearSelection: () => clearSelection(),
     },
   );
   attachOverlayScrollbar(dom.detail.querySelector<HTMLElement>(".detail__scroll"));
