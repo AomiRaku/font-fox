@@ -195,6 +195,9 @@ pub struct Settings {
     /// 右侧详情面板是否展开。
     #[serde(default = "default_true")]
     pub detail_open: bool,
+    /// 选中 / 取消选择时是否自动展开 / 收起详情面板。
+    #[serde(default = "default_true")]
+    pub auto_detail: bool,
     /// 字体列表行是否显示悬停底色。
     #[serde(default)]
     pub row_hover: bool,
@@ -238,6 +241,7 @@ impl Default for Settings {
             update_source: default_update_source(),
             ignored_update_version: String::new(),
             detail_open: true,
+            auto_detail: true,
             row_hover: false,
             mica_mode: default_mica_mode(),
         }

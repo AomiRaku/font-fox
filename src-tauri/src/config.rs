@@ -89,6 +89,9 @@ pub fn load() -> Settings {
     if let Some(v) = entry(&entries, "DetailOpen") {
         settings.detail_open = v.eq_ignore_ascii_case("true");
     }
+    if let Some(v) = entry(&entries, "AutoDetail") {
+        settings.auto_detail = v.eq_ignore_ascii_case("true");
+    }
     if let Some(v) = entry(&entries, "RowHover") {
         settings.row_hover = v.eq_ignore_ascii_case("true");
     }
@@ -123,6 +126,7 @@ pub fn save(settings: &Settings) -> Result<(), String> {
          Theme={}\r\n\
          Language={}\r\n\
          DetailOpen={}\r\n\
+         AutoDetail={}\r\n\
          RowHover={}\r\n\
          MicaMode={}\r\n\
          DisableMode={}\r\n\
@@ -134,6 +138,7 @@ pub fn save(settings: &Settings) -> Result<(), String> {
         one_line(&settings.theme),
         one_line(&settings.language),
         settings.detail_open,
+        settings.auto_detail,
         settings.row_hover,
         one_line(&settings.mica_mode),
         one_line(&settings.disable_mode),

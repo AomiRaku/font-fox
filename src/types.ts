@@ -125,6 +125,8 @@ export interface Settings {
   theme: ThemeMode;
   /** 右侧详情面板是否展开（持久化）。 */
   detailOpen: boolean;
+  /** 选中 / 取消选择时是否自动展开 / 收起详情面板。 */
+  autoDetail: boolean;
   /** 字体列表行是否显示悬停底色。 */
   rowHover: boolean;
   /** Mica 模式：关闭 / 仅侧栏 / 整个界面。 */
@@ -189,6 +191,7 @@ export const DEFAULT_SETTINGS: Settings = {
   updateSource: "github",
   ignoredUpdateVersion: "",
   detailOpen: true,
+  autoDetail: true,
   rowHover: false,
   micaMode: "sidebar",
   disableMode: "dynamic",

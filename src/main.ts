@@ -818,7 +818,7 @@ function syncRowSelection(): void {
 /** 选中单个字体行：普通点击替换，Ctrl 增减，Shift 按行顺序做范围选择。 */
 function selectEntry(entry: FontEntry, event: MouseEvent): void {
   if (event.shiftKey && applyRange(entry.id)) {
-    revealDetailForMultiSelection();
+    syncAutoDetail();
     renderAll();
     return;
   }
@@ -834,7 +834,7 @@ function selectEntry(entry: FontEntry, event: MouseEvent): void {
     state.selectedIds = new Set([entry.id]);
     state.anchorId = entry.id;
   }
-  revealDetailForMultiSelection();
+  syncAutoDetail();
   renderAll();
 }
 /** 选中字族行：整族等价于“全选族内字体”，Ctrl / Shift 语义与字体行一致。 */
@@ -847,6 +847,7 @@ function selectFamily(
   if (members.length === 0) return;
 
   if (event?.shiftKey && applyRange(key)) {
+    syncAutoDetail();
     syncRowSelection();
     renderDetailPane();
     return;
@@ -863,6 +864,7 @@ function selectFamily(
     for (const member of members) state.selectedIds.add(member.id);
   }
   state.anchorId = key;
+  syncAutoDetail();
   syncRowSelection();
   renderDetailPane();
 }
@@ -904,7 +906,7 @@ function toggleSelectAll(): void {
   const allSelected = ids.every((id) => state.selectedIds.has(id));
   state.selectedIds = allSelected ? new Set() : new Set(ids);
   state.anchorId = null;
-  revealDetailForMultiSelection();
+  syncAutoDetail();
   renderAll();
 }
 
@@ -914,13 +916,14 @@ function selectAllVisible(): void {
   if (ids.length === 0) return;
   state.selectedIds = new Set(ids);
   state.anchorId = null;
-  revealDetailForMultiSelection();
+  syncAutoDetail();
   renderAll();
 }
 
 function clearSelection(): void {
   state.selectedIds.clear();
   state.anchorId = null;
+  syncAutoDetail();
   renderAll();
 }
 
@@ -932,7 +935,7 @@ function invertSelection(): void {
   }
   state.selectedIds = next;
   state.anchorId = null;
-  revealDetailForMultiSelection();
+  syncAutoDetail();
   renderAll();
 }
 
@@ -1800,6 +1803,7 @@ async function refresh(): Promise<boolean> {
     }
 
     if (state.anchorId && !ids.has(state.anchorId)) state.anchorId = null;
+    syncAutoDetail();
     renderAll();
     return true;
   } catch (err) {
@@ -2080,6 +2084,7 @@ function moveSelection(delta: number): void {
   const target = list_[next];
   state.selectedIds = new Set([target.id]);
   state.anchorId = target.id;
+  syncAutoDetail();
   list.scrollToKey(target.id);
   renderAll();
 }
@@ -2909,6 +2914,19 @@ function openSettings(): void {
         scheduleSave();
       },
       t("settings.rowHoverHint"),
+    ),
+  );
+
+  list.appendChild(
+    switchRow(
+      t("settings.autoDetail"),
+      state.settings.autoDetail,
+      (value) => {
+        state.settings.autoDetail = value;
+        scheduleSave();
+        if (value) syncAutoDetail();
+      },
+      t("settings.autoDetailHint"),
     ),
   );
 
@@ -3770,12 +3788,13 @@ async function syncMaximizeLabel(): Promise<void> {
   }
 }
 
-/** 手动多选字体时展开详情面板；字族选择不算多选。 */
-function revealDetailForMultiSelection(): void {
-  if (state.selectedIds.size > 1 && !state.settings.detailOpen) {
-    applyDetailOpen(true);
-    scheduleSave();
-  }
+/** 自动显示详情面板开启时，按当前是否有选中项同步展开 / 收起。 */
+function syncAutoDetail(): void {
+  if (!state.settings.autoDetail) return;
+  const open = state.selectedIds.size > 0;
+  if (state.settings.detailOpen === open) return;
+  applyDetailOpen(open);
+  scheduleSave();
 }
 function applyDetailOpen(open: boolean): void {
   state.settings.detailOpen = open;
@@ -3793,6 +3812,7 @@ function switchView(view: SidebarView): void {
   state.selectedIds.clear();
   state.anchorId = null;
   state.collapsed.clear();
+  syncAutoDetail();
   renderSidebar();
   applyFilter();
   rebuild();
@@ -3845,6 +3865,7 @@ function removeEntriesFromCollection(entries: FontEntry[]): void {
   const name = entries.length > 1 ? entries[0].family : fontLabel(entries[0]);
   toast(t("toast.removedFromCollection", { name, list: collection.name }));
   for (const id of removing) state.selectedIds.delete(id);
+  syncAutoDetail();
   applyFilter();
   rebuild();
   renderDetailPane();
@@ -4078,6 +4099,7 @@ function bindRowMenu(): void {
       // 右键未选项：替换为这一项（字族 → 整族）
       state.selectedIds = new Set(unitIds);
       state.anchorId = id || `family:${family}`;
+      syncAutoDetail();
       renderAll();
       targets = entries;
     }
@@ -4563,6 +4585,7 @@ async function boot(): Promise<void> {
   if (colored) scheduleLibrarySave();
 
   list = new VirtualList(dom.viewport, dom.spacer, dom.rows);
+  if (state.settings.autoDetail) state.settings.detailOpen = false;
   applyDetailOpen(state.settings.detailOpen);
   applyRowHover();
   syncGroupButton();
