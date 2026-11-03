@@ -25,6 +25,8 @@ FontFox is a **local font manager for Windows**. It lets you **browse fonts**, *
 
 You can **search** and **filter** fonts, or **group** them by type. Protected system fonts are marked separately.
 
+The interface is available in Simplified Chinese, Traditional Chinese, English, French, Russian, Japanese, and Korean, and follows the system language by default.
+
 Create favorites or **font collections** to manage fonts in groups and view them together. You can also quickly enable or disable every font in a collection.
 
 By default, FontFox disables fonts by temporarily uninstalling them. This lets Adobe and other third-party applications refresh their font lists without a restart where possible. Windows' built-in font hiding method is also available as an option, but it has no effect in most third-party applications.
