@@ -7,6 +7,10 @@
 
 Made with ❤️ by [羽梦千景 Raku Inkyetta](https://github.com/AomiRaku)
 
+
+
+简体中文 | [English](README-en.md)
+
 </div>
 
 ## 快速开始
