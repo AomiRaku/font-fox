@@ -2323,7 +2323,7 @@ function openUpdateDialog1(update: UpdateInfo): void {
   const close = el("button", "btn btn--soft", t("update.close")) as HTMLButtonElement;
   close.type = "button";
   footer.classList.add("update__footer");
-  footer.append(skip, download, close);
+  footer.append(skip, close, download);
 
   const dismiss = (): void => dismissModal(overlay, () => undefined);
   skip.addEventListener("click", () => {
@@ -2352,7 +2352,7 @@ function openUpdateDialog2(update: UpdateInfo): void {
   download.type = "button";
   const close = el("button", "btn btn--soft", t("update.close")) as HTMLButtonElement;
   close.type = "button";
-  footer.append(download, close);
+  footer.append(close, download);
 
   const dismiss = (): void => dismissModal(overlay, () => undefined);
   download.addEventListener("click", () => {
@@ -2458,7 +2458,7 @@ function askCancelDownload(): Promise<boolean> {
     keep.type = "button";
     const stop = el("button", "btn btn--soft", t("update.cancelDownload")) as HTMLButtonElement;
     stop.type = "button";
-    footer.append(keep, stop);
+    footer.append(stop, keep);
     const finish = (result: boolean): void => {
       dismissModal(overlay, () => undefined);
       resolve(result);

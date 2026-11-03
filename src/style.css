@@ -3305,7 +3305,7 @@ html[data-detail="closed"] .pane--detail {
 
 .about__body {
   align-items: center;
-  padding: 0 var(--sp-5);
+  padding: 16px var(--sp-5) 0;
 }
 
 .about {
@@ -3362,7 +3362,7 @@ html[data-theme="dark"] .about__wordmark--dark {
 }
 
 .about__credits {
-  margin: calc(var(--sp-5) + 6px) 0 0;
+  margin: calc(var(--sp-5) + 14px) 0 0;
   font-size: var(--fs-sm);
   color: var(--ink-soft);
 }
@@ -3377,8 +3377,8 @@ html[data-theme="dark"] .about__wordmark--dark {
   display: flex;
   gap: var(--sp-4);
   margin-top: var(--sp-3);
-  /* 抵消上方 +6px，保持居中布局里的 Logo 区块位置不变 */
-  margin-bottom: -6px;
+  /* 抵消上方增加的 8px，保持 Logo 区块与底部操作区位置不变 */
+  margin-bottom: -14px;
 }
 
 .about__link {
