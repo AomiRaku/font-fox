@@ -722,6 +722,11 @@ interface SelectedFamily {
 }
 
 /** 当前选择若恰好是某一个字族行（某个分组里的子集）的全部字体，返回该字族。 */
+/** 侧栏详情进入批量视图才算多选；整族选择仍按单选处理。 */
+function hasBatchSelection(): boolean {
+  return state.selectedIds.size > 1 && soleSelectedFamily() === null;
+}
+
 function soleSelectedFamily(): SelectedFamily | null {
   if (state.selectedIds.size === 0) return null;
   for (const [key, members] of state.familyMembers) {
@@ -1107,6 +1112,7 @@ function activateFamily(
 ): void {
   if (!state.settings.detailOpen) {
     selectFamily(displayName, undefined, members, rowKey);
+    if (hasBatchSelection()) autoDetailSuppressed = false;
     applyDetailOpen(true);
     scheduleSave();
     return;
@@ -2923,6 +2929,7 @@ function openSettings(): void {
       state.settings.autoDetail,
       (value) => {
         state.settings.autoDetail = value;
+        autoDetailSuppressed = false;
         scheduleSave();
         if (value) syncAutoDetail();
       },
@@ -3788,14 +3795,75 @@ async function syncMaximizeLabel(): Promise<void> {
   }
 }
 
-/** 自动显示详情面板开启时，按当前是否有选中项同步展开 / 收起。 */
+/** 当前多选会话中，用户手动收起详情面板后抑制再次自动展开。 */
+let autoDetailSuppressed = false;
+/** 本次多选开始前的详情面板状态，用于关闭自动展开时恢复。 */
+let batchDetailBefore: boolean | null = null;
+
+/** 批量多选始终自动展开；其余选择由自动显示详情面板开关决定。 */
 function syncAutoDetail(): void {
+  const multi = hasBatchSelection();
+  syncDetailToggleIcon(multi);
+  if (multi && batchDetailBefore === null) batchDetailBefore = state.settings.detailOpen;
+  if (!multi && batchDetailBefore !== null) {
+    autoDetailSuppressed = false;
+    if (!state.settings.autoDetail) {
+      const restore = batchDetailBefore;
+      batchDetailBefore = null;
+      if (state.settings.detailOpen !== restore) {
+        applyDetailOpen(restore);
+        scheduleSave();
+      }
+      return;
+    }
+    batchDetailBefore = null;
+  }
+  if (multi) {
+    if (autoDetailSuppressed || state.settings.detailOpen) return;
+    applyDetailOpen(true);
+    scheduleSave();
+    return;
+  }
   if (!state.settings.autoDetail) return;
   const open = state.selectedIds.size > 0;
   if (state.settings.detailOpen === open) return;
   applyDetailOpen(open);
   scheduleSave();
 }
+let detailToggleWidthAnimation = 0;
+
+function syncDetailToggleIcon(multi = hasBatchSelection()): void {
+  const button = dom.detailToggle;
+  const before = button.getBoundingClientRect().width;
+  const name = multi
+    ? "document-bulk"
+    : state.settings.detailOpen
+      ? "navigation-right-hide"
+      : "navigation-right";
+  button.classList.toggle("icon-btn--labeled", multi);
+  const children: Node[] = [icon(name)];
+  if (multi) {
+    children.push(
+      el("span", "detail__count", String(selectedEntries().length)),
+    );
+  }
+  button.replaceChildren(...children);
+
+  // 先量出内容宽度，再从当前宽度过渡到目标宽度，推动左侧控件平移。
+  button.style.width = "";
+  const target = button.getBoundingClientRect().width;
+  const token = ++detailToggleWidthAnimation;
+  if (Math.abs(target - before) < 0.5) {
+    button.style.width = "";
+    return;
+  }
+  button.style.width = `${before}px`;
+  requestAnimationFrame(() => {
+    if (token !== detailToggleWidthAnimation) return;
+    button.style.width = `${target}px`;
+  });
+}
+
 function applyDetailOpen(open: boolean): void {
   state.settings.detailOpen = open;
   document.documentElement.dataset.detail = open ? "open" : "closed";
@@ -3804,7 +3872,7 @@ function applyDetailOpen(open: boolean): void {
   const label = open ? t("toolbar.hideDetail") : t("toolbar.showDetail");
   dom.detailToggle.title = label;
   dom.detailToggle.setAttribute("aria-label", label);
-  dom.detailToggle.replaceChildren(icon(open ? "navigation-right-hide" : "navigation-right"));
+  syncDetailToggleIcon();
 }
 
 /** 切换视图并刷新列表。 */
@@ -4073,6 +4141,7 @@ function bindRowMenu(): void {
     if (!row.dataset.id) return;
     if ((event.target as HTMLElement).closest(".switch, .row__gutter")) return;
     if (!state.settings.detailOpen) {
+      if (hasBatchSelection()) autoDetailSuppressed = false;
       applyDetailOpen(true);
       scheduleSave();
     }
@@ -4133,6 +4202,7 @@ function rowMenuItems(entries: FontEntry[]): MenuItem[] {
     {
       label: t("ctx.view"),
       run: () => {
+        if (hasBatchSelection()) autoDetailSuppressed = false;
         applyDetailOpen(true);
         scheduleSave();
       },
@@ -4176,7 +4246,11 @@ function rowMenuItems(entries: FontEntry[]): MenuItem[] {
 /** 侧栏：导航点击、字体单新建 / 切换 / 右键菜单。 */
 function bindSidebar(): void {
   dom.detailToggle.addEventListener("click", () => {
-    applyDetailOpen(!state.settings.detailOpen);
+    const open = !state.settings.detailOpen;
+    if (hasBatchSelection()) {
+      autoDetailSuppressed = !open;
+    }
+    applyDetailOpen(open);
     scheduleSave();
   });
 

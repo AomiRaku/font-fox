@@ -3289,6 +3289,17 @@ html[data-detail="closed"] .pane--detail {
   flex: 0 0 16px;
 }
 
+#detail-toggle {
+  transition: width 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.detail__count {
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
 .filter-label {
   font-size: var(--fs-sm);
   color: var(--ink);
