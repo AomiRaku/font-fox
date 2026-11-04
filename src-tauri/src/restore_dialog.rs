@@ -10,8 +10,8 @@ mod imp {
     use std::ptr;
 
     use windows_sys::Win32::UI::Controls::{
-        TASKDIALOGCONFIG, TASKDIALOG_BUTTON, TASKDIALOG_FLAGS, TDCBF_OK_BUTTON, TDF_ALLOW_DIALOG_CANCELLATION,
-        TaskDialog, TaskDialogIndirect,
+        TaskDialog, TaskDialogIndirect, TASKDIALOGCONFIG, TASKDIALOG_BUTTON, TASKDIALOG_FLAGS,
+        TDCBF_OK_BUTTON, TDF_ALLOW_DIALOG_CANCELLATION,
     };
 
     fn wide(text: &str) -> Vec<u16> {

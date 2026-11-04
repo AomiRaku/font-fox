@@ -74,8 +74,10 @@ pub fn delete_with_elevation(ids: Vec<String>) -> Result<DeleteReport, String> {
     ));
 
     let request = ElevationRequest { ids };
-    let text = serde_json::to_string(&request).map_err(|e| format!("Failed to serialize request: {}", e))?;
-    std::fs::write(&request_path, text).map_err(|e| format!("Failed to write elevation request: {}", e))?;
+    let text = serde_json::to_string(&request)
+        .map_err(|e| format!("Failed to serialize request: {}", e))?;
+    std::fs::write(&request_path, text)
+        .map_err(|e| format!("Failed to write elevation request: {}", e))?;
 
     let exe = match std::env::current_exe() {
         Ok(p) => p,

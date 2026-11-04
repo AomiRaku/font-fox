@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use memmap2::Mmap;
 
-use ab_glyph::{Font, FontRef, Glyph, GlyphId, PxScale, ScaleFont, VariableFont, point};
+use ab_glyph::{point, Font, FontRef, Glyph, GlyphId, PxScale, ScaleFont, VariableFont};
 use base64::Engine;
 
 /// 缓存条数上限
@@ -94,7 +94,10 @@ pub fn render(
         .map(|(tag, value)| format!("{tag}={value:.3}"))
         .collect::<Vec<_>>()
         .join(",");
-    let key = format!("{path}|{}|{text}|{size}|{dpr}|{color}|{max_width}|{weight}|{axis_key}|{fallback}", file_stamp(path));
+    let key = format!(
+        "{path}|{}|{text}|{size}|{dpr}|{color}|{max_width}|{weight}|{axis_key}|{fallback}",
+        file_stamp(path)
+    );
     if !fresh {
         if let Some(hit) = cache_lookup(&key) {
             return Ok(hit);
@@ -167,7 +170,9 @@ fn resolve_text(path: &str, raw: &str, fallback: bool) -> Result<String, String>
 
 /// 从 cmap 全部子表取最多 24 个有字形的字符，优先 ASCII。
 fn cmap_sample(glyphs: &HashMap<u32, u16>) -> Option<String> {
-    let mut candidates: Vec<u32> = (0x21..=0x7E).filter(|code| glyphs.contains_key(code)).collect();
+    let mut candidates: Vec<u32> = (0x21..=0x7E)
+        .filter(|code| glyphs.contains_key(code))
+        .collect();
     let mut rest: Vec<u32> = glyphs.keys().copied().collect();
     rest.sort_unstable();
     candidates.extend(rest);
@@ -257,7 +262,8 @@ fn font_map(path: &str) -> Result<Arc<Mmap>, String> {
     }
 
     let file = File::open(path).map_err(|error| format!("Failed to open font: {error}"))?;
-    let map = unsafe { Mmap::map(&file) }.map_err(|error| format!("Failed to map font: {error}"))?;
+    let map =
+        unsafe { Mmap::map(&file) }.map_err(|error| format!("Failed to map font: {error}"))?;
     let map = Arc::new(map);
     if let Ok(mut list) = cache.lock() {
         list.push((path.to_string(), stamp, map.clone()));

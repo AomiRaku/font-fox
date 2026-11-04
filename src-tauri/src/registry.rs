@@ -9,7 +9,7 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use winreg::enums::{
-    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WRITE, KEY_WOW64_64KEY, REG_MULTI_SZ,
+    HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_64KEY, KEY_WRITE, REG_MULTI_SZ,
 };
 use winreg::{RegKey, RegValue};
 
@@ -22,7 +22,6 @@ pub const FONT_MANAGEMENT_SUBKEY: &str =
     r"Software\Microsoft\Windows NT\CurrentVersion\Font Management";
 /// 被隐藏字体的多字符串值名。
 pub const INACTIVE_FONTS_VALUE: &str = "Inactive Fonts";
-
 
 /// `C:\Windows\Fonts`
 pub fn system_font_dir() -> PathBuf {
@@ -203,7 +202,10 @@ pub fn delete_font_value(scope: Scope, value_name: &str) -> Result<bool, String>
     match key.delete_value(value_name) {
         Ok(()) => Ok(true),
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(false),
-        Err(err) => Err(format!("Failed to delete registry value “{}”: {}", value_name, err)),
+        Err(err) => Err(format!(
+            "Failed to delete registry value “{}”: {}",
+            value_name, err
+        )),
     }
 }
 
@@ -227,10 +229,8 @@ pub fn write_font_value(scope: Scope, value_name: &str, data: &str) -> Result<()
 /// 读取 `Inactive Fonts`（REG_MULTI_SZ）。
 pub fn read_inactive_fonts() -> Result<Vec<String>, String> {
     let hive = RegKey::predef(HKEY_CURRENT_USER);
-    let key = match hive.open_subkey_with_flags(
-        FONT_MANAGEMENT_SUBKEY,
-        KEY_READ | KEY_WOW64_64KEY,
-    ) {
+    let key = match hive.open_subkey_with_flags(FONT_MANAGEMENT_SUBKEY, KEY_READ | KEY_WOW64_64KEY)
+    {
         Ok(k) => k,
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
         Err(err) => return Err(format!("Failed to read Font Management key: {}", err)),
@@ -250,7 +250,10 @@ pub fn read_inactive_fonts() -> Result<Vec<String>, String> {
 pub fn write_inactive_fonts(items: &[String]) -> Result<(), String> {
     let hive = RegKey::predef(HKEY_CURRENT_USER);
     let (key, _) = hive
-        .create_subkey_with_flags(FONT_MANAGEMENT_SUBKEY, KEY_READ | KEY_WRITE | KEY_WOW64_64KEY)
+        .create_subkey_with_flags(
+            FONT_MANAGEMENT_SUBKEY,
+            KEY_READ | KEY_WRITE | KEY_WOW64_64KEY,
+        )
         .map_err(|e| format!("Unable to open Font Management key: {}", e))?;
 
     let mut bytes: Vec<u8> = Vec::new();
@@ -270,7 +273,6 @@ pub fn write_inactive_fonts(items: &[String]) -> Result<(), String> {
     key.set_raw_value(INACTIVE_FONTS_VALUE, &value)
         .map_err(|e| format!("Failed to write Inactive Fonts: {}", e))
 }
-
 
 /// 删除整个 `Inactive Fonts` 值：卸载时把「已停用」的字体全部恢复。
 pub fn clear_inactive_fonts() -> Result<(), String> {

@@ -34,16 +34,21 @@ fn pick(value: &str, allowed: &[&str], fallback: &str) -> String {
     }
 }
 
-
 pub fn load() -> Settings {
     let mut settings = config::load();
     let defaults = Settings::default();
 
     settings.view_mode = pick(&settings.view_mode, &VIEW_MODES, &defaults.view_mode);
     settings.theme = pick(&settings.theme, &THEMES, &defaults.theme);
-    settings.disable_mode = pick(&settings.disable_mode, &DISABLE_MODES, &defaults.disable_mode);
-    settings.disable_mode_next = pick_optional_mode(&settings.disable_mode_next, &settings.disable_mode);
-    settings.update_source = normalize_update_source(&settings.update_source, &defaults.update_source);
+    settings.disable_mode = pick(
+        &settings.disable_mode,
+        &DISABLE_MODES,
+        &defaults.disable_mode,
+    );
+    settings.disable_mode_next =
+        pick_optional_mode(&settings.disable_mode_next, &settings.disable_mode);
+    settings.update_source =
+        normalize_update_source(&settings.update_source, &defaults.update_source);
     settings.mica_mode = pick(&settings.mica_mode, &MICA_MODES, &defaults.mica_mode);
     if !crate::mica::is_supported() {
         settings.mica_mode = "off".to_string();
@@ -59,10 +64,15 @@ pub fn save(settings: &Settings) -> Result<(), String> {
     let mut normalized = settings.clone();
     normalized.view_mode = pick(&settings.view_mode, &VIEW_MODES, &defaults.view_mode);
     normalized.theme = pick(&settings.theme, &THEMES, &defaults.theme);
-    normalized.disable_mode = pick(&settings.disable_mode, &DISABLE_MODES, &defaults.disable_mode);
+    normalized.disable_mode = pick(
+        &settings.disable_mode,
+        &DISABLE_MODES,
+        &defaults.disable_mode,
+    );
     normalized.disable_mode_next =
         pick_optional_mode(&settings.disable_mode_next, &normalized.disable_mode);
-    normalized.update_source = normalize_update_source(&settings.update_source, &defaults.update_source);
+    normalized.update_source =
+        normalize_update_source(&settings.update_source, &defaults.update_source);
     normalized.mica_mode = pick(&settings.mica_mode, &MICA_MODES, &defaults.mica_mode);
     if !crate::mica::is_supported() {
         normalized.mica_mode = "off".to_string();

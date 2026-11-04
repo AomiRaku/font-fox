@@ -19,9 +19,9 @@ use crate::library;
 use crate::model::{
     DeleteReport, FontEntry, FontListPayload, HiddenReport, PendingDelete, Scope, Settings,
 };
-use crate::system_fonts;
 use crate::registry;
 use crate::settings as settings_store;
+use crate::system_fonts;
 
 /// 缓存的字体表，让删除 / 隐藏命令不必重新扫描。
 #[derive(Default)]
@@ -171,14 +171,16 @@ pub async fn set_fonts_hidden(
             Ok(guard) => guard,
             Err(_) => {
                 let mut report = HiddenReport::default();
-                report.errors.push("Font state lock is unavailable.".to_string());
+                report
+                    .errors
+                    .push("Font state lock is unavailable.".to_string());
                 return report;
             }
         };
         inactive::set_hidden(&entries, hidden)
     })
     .await
-        .map_err(|e| format!("Failed to write hidden state: {}", e))?;
+    .map_err(|e| format!("Failed to write hidden state: {}", e))?;
     if report.errors.is_empty() {
         state.set_hidden_flags(&ids, hidden);
         // 广播要等所有顶层窗口应答（最长 1s），放到后台线程，别拖住这次 IPC
@@ -188,10 +190,7 @@ pub async fn set_fonts_hidden(
 }
 
 #[tauri::command]
-pub async fn delete_fonts(
-    app: tauri::AppHandle,
-    ids: Vec<String>,
-) -> Result<DeleteReport, String> {
+pub async fn delete_fonts(app: tauri::AppHandle, ids: Vec<String>) -> Result<DeleteReport, String> {
     let state = app.state::<AppState>();
     let mut entries = state.cached(&ids);
     if entries.len() != ids.len() {
@@ -244,7 +243,9 @@ pub async fn delete_fonts(
                     report.errors.push(err);
                 }
                 Err(err) => {
-                    report.errors.push(format!("Failed to start elevated process: {}", err));
+                    report
+                        .errors
+                        .push(format!("Failed to start elevated process: {}", err));
                 }
             }
         }
@@ -419,7 +420,9 @@ fn select_in_explorer(path: &str) -> Result<(), String> {
 }
 
 unsafe fn select_in_explorer_sta(path: &str) -> Result<(), String> {
-    use windows_sys::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
+    use windows_sys::Win32::System::Com::{
+        CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED,
+    };
     use windows_sys::Win32::UI::Shell::{ILCreateFromPathW, ILFree, SHOpenFolderAndSelectItems};
 
     // 新线程里第一次初始化必定返回 S_OK；S_FALSE 表示已初始化过
@@ -559,7 +562,12 @@ pub async fn set_disable_mode(
     _app: tauri::AppHandle,
     mode: String,
 ) -> Result<ModeSwitchReport, String> {
-    let mode = if mode == "dynamic" { "dynamic" } else { "windows" }.to_string();
+    let mode = if mode == "dynamic" {
+        "dynamic"
+    } else {
+        "windows"
+    }
+    .to_string();
     let mut current_settings = settings_store::load();
     let current = current_settings.disable_mode.clone();
     if current == mode {
@@ -592,7 +600,8 @@ pub async fn set_disable_mode(
 
     // 1. 在旧模式下恢复启用；失败则中止切换，保持原模式不变
     if current == "dynamic" {
-        crate::mode::restore_all().map_err(|err| format!("Failed to restore isolated fonts: {}", err))?;
+        crate::mode::restore_all()
+            .map_err(|err| format!("Failed to restore isolated fonts: {}", err))?;
     } else {
         let hidden: Vec<FontEntry> = payload
             .fonts
@@ -736,7 +745,8 @@ pub async fn reset_user_data() -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(|| {
         let dir = crate::config::app_dir();
         if dir.exists() {
-            std::fs::remove_dir_all(&dir).map_err(|err| format!("Failed to delete config directory: {err}"))?;
+            std::fs::remove_dir_all(&dir)
+                .map_err(|err| format!("Failed to delete config directory: {err}"))?;
         }
         Ok(())
     })
@@ -782,12 +792,15 @@ pub fn font_extras(app: tauri::AppHandle, ids: Vec<String>) -> Vec<FontExtras> {
     };
     ids.iter()
         .filter_map(|id| {
-            fonts.iter().find(|font| &font.id == id).map(|font| FontExtras {
-                id: font.id.clone(),
-                families: font.families.clone(),
-                version: font.version.clone(),
-                copyright: font.copyright.clone(),
-            })
+            fonts
+                .iter()
+                .find(|font| &font.id == id)
+                .map(|font| FontExtras {
+                    id: font.id.clone(),
+                    families: font.families.clone(),
+                    version: font.version.clone(),
+                    copyright: font.copyright.clone(),
+                })
         })
         .collect()
 }

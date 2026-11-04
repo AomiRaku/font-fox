@@ -139,8 +139,17 @@ mod tests {
         let data = std::fs::read(path).unwrap();
         let face = Face::parse(&data, 0).unwrap();
         let langs = detect(&face);
-        assert!(langs.contains(&"英语"), "Segoe UI 应支持英语，实际 {langs:?}");
-        assert!(langs.contains(&"德语"), "Segoe UI 应支持德语，实际 {langs:?}");
-        assert!(!langs.contains(&"泰语"), "Segoe UI 不含泰文，实际 {langs:?}");
+        assert!(
+            langs.contains(&"英语"),
+            "Segoe UI 应支持英语，实际 {langs:?}"
+        );
+        assert!(
+            langs.contains(&"德语"),
+            "Segoe UI 应支持德语，实际 {langs:?}"
+        );
+        assert!(
+            !langs.contains(&"泰语"),
+            "Segoe UI 不含泰文，实际 {langs:?}"
+        );
     }
 }

@@ -10,10 +10,10 @@ use rayon::prelude::*;
 
 use crate::inactive::InactiveSet;
 use crate::model::{FontEntry, FontListPayload, Protection, Scope};
-use crate::system_fonts;
 use crate::ownership;
 use crate::parse;
 use crate::registry;
+use crate::system_fonts;
 
 struct RawEntry {
     scope: Scope,
@@ -43,7 +43,11 @@ fn collect_scope(scope: Scope, out: &mut Vec<RawEntry>) -> Vec<String> {
                 });
             }
         }
-        Err(err) => errors.push(format!("Failed to read {} font registry: {}", scope.as_str(), err)),
+        Err(err) => errors.push(format!(
+            "Failed to read {} font registry: {}",
+            scope.as_str(),
+            err
+        )),
     }
     errors
 }
@@ -52,7 +56,6 @@ fn collect_scope(scope: Scope, out: &mut Vec<RawEntry>) -> Vec<String> {
 ///
 /// 性能目标：500+ 字体在 1–2 秒内完成（解析在 rayon 线程池上并行）。
 pub fn scan() -> FontListPayload {
-
     let mut raw: Vec<RawEntry> = Vec::new();
     let mut errors = collect_scope(Scope::System, &mut raw);
     let user_start = raw.len();
@@ -116,10 +119,7 @@ pub fn scan() -> FontListPayload {
                 .map(|m| m.family.clone())
                 .filter(|f| !f.is_empty())
                 .unwrap_or_else(|| display_name.clone());
-            let style = meta
-                .as_ref()
-                .map(|m| m.style.clone())
-                .unwrap_or_default();
+            let style = meta.as_ref().map(|m| m.style.clone()).unwrap_or_default();
             let full_name = meta
                 .as_ref()
                 .map(|m| m.full_name.clone())
@@ -182,8 +182,8 @@ pub fn scan() -> FontListPayload {
                 weight_max: meta.as_ref().map(|m| m.weight_max).unwrap_or(0),
                 monospace: meta.as_ref().map(|m| m.monospace).unwrap_or(false),
                 ligatures: meta.as_ref().map(|m| m.ligatures).unwrap_or(false),
-  hinting: meta.as_ref().map(|m| m.hinting).unwrap_or(false),
-  axes: meta.as_ref().map(|m| m.axes.clone()).unwrap_or_default(),
+                hinting: meta.as_ref().map(|m| m.hinting).unwrap_or(false),
+                axes: meta.as_ref().map(|m| m.axes.clone()).unwrap_or_default(),
                 scope: raw.scope,
                 file_name,
                 path: raw.path.as_os_str().to_string_lossy().to_string(),

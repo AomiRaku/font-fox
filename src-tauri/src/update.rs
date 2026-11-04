@@ -61,7 +61,10 @@ fn parse_version(value: &str) -> Option<Vec<u64>> {
     if text.is_empty() || !text.chars().all(|ch| ch.is_ascii_digit() || ch == '.') {
         return None;
     }
-    let parts: Option<Vec<u64>> = text.split('.').map(|part| part.parse::<u64>().ok()).collect();
+    let parts: Option<Vec<u64>> = text
+        .split('.')
+        .map(|part| part.parse::<u64>().ok())
+        .collect();
     if parts.as_ref().map_or(true, Vec::is_empty) {
         return None;
     }
@@ -69,7 +72,8 @@ fn parse_version(value: &str) -> Option<Vec<u64>> {
 }
 
 fn is_newer(latest: &str, current: &str) -> bool {
-    let (Some(mut latest), Some(mut current)) = (parse_version(latest), parse_version(current)) else {
+    let (Some(mut latest), Some(mut current)) = (parse_version(latest), parse_version(current))
+    else {
         return false;
     };
     while latest.len() < current.len() {
@@ -213,7 +217,8 @@ fn download_sync(app: &AppHandle, source: &str, version: &str) -> Result<String,
     let version = normalize_version(version)?;
     let url = download_url(source, &version);
     let dir = update_dir();
-    std::fs::create_dir_all(&dir).map_err(|err| format!("Unable to create download directory: {err}"))?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|err| format!("Unable to create download directory: {err}"))?;
     let path = download_path(&version);
     let _ = std::fs::remove_file(&path);
 
@@ -223,10 +228,14 @@ fn download_sync(app: &AppHandle, source: &str, version: &str) -> Result<String,
         .send()
         .map_err(|err| format!("Update download failed: {err}"))?;
     if !response.status().is_success() {
-        return Err(format!("Update download failed: HTTP {}", response.status()));
+        return Err(format!(
+            "Update download failed: HTTP {}",
+            response.status()
+        ));
     }
     let total = response.content_length().unwrap_or(0);
-    let mut file = File::create(&path).map_err(|err| format!("Unable to create installer package: {err}"))?;
+    let mut file =
+        File::create(&path).map_err(|err| format!("Unable to create installer package: {err}"))?;
 
     let mut buffer = vec![0u8; 64 * 1024];
     let mut downloaded = 0u64;
@@ -258,8 +267,9 @@ fn download_sync(app: &AppHandle, source: &str, version: &str) -> Result<String,
         downloaded += read as u64;
 
         if last_emit.elapsed() >= Duration::from_millis(120) {
-            let speed =
-                (downloaded.saturating_sub(last_bytes)) as f64 / last_emit.elapsed().as_secs_f64() / 1024.0;
+            let speed = (downloaded.saturating_sub(last_bytes)) as f64
+                / last_emit.elapsed().as_secs_f64()
+                / 1024.0;
             emit_progress(app, downloaded, total, speed);
             last_bytes = downloaded;
             last_emit = Instant::now();
@@ -303,9 +313,10 @@ pub async fn download_update(
     }
     DOWNLOAD_CANCEL.store(false, AtomicOrdering::SeqCst);
     let app_for_task = app.clone();
-    let result =
-        tauri::async_runtime::spawn_blocking(move || download_sync(&app_for_task, &source, &version))
-            .await;
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        download_sync(&app_for_task, &source, &version)
+    })
+    .await;
     DOWNLOAD_ACTIVE.store(false, AtomicOrdering::SeqCst);
     result.map_err(|err| format!("Update download failed: {err}"))?
 }

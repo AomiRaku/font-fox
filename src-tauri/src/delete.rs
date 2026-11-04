@@ -49,10 +49,7 @@ fn save_pending(items: &[PendingDelete]) {
 fn register_pending(path: &Path, label: &str) {
     let mut items = load_pending();
     let key = path.to_string_lossy().to_lowercase();
-    if items
-        .iter()
-        .any(|i| i.path.to_lowercase() == key)
-    {
+    if items.iter().any(|i| i.path.to_lowercase() == key) {
         return;
     }
     items.push(PendingDelete {
@@ -131,7 +128,9 @@ pub fn delete_entries(entries: &[FontEntry], elevated: bool) -> DeleteReport {
 
         if entry.scope == Scope::System && !elevated {
             report.elevation_required = true;
-            item.error = Some("Administrator privileges are required to delete system-scope fonts.".to_string());
+            item.error = Some(
+                "Administrator privileges are required to delete system-scope fonts.".to_string(),
+            );
             report.items.push(item);
             continue;
         }
@@ -261,10 +260,10 @@ pub struct ElevationResponse {
 pub fn run_elevated_request(request_path: &Path) -> i32 {
     let response_path = elevation_response_path(request_path);
     let result = (|| -> Result<DeleteReport, String> {
-        let text =
-            std::fs::read_to_string(request_path).map_err(|e| format!("Failed to read elevation request: {}", e))?;
-        let request: ElevationRequest =
-            serde_json::from_str(&text).map_err(|e| format!("Invalid elevation request format: {}", e))?;
+        let text = std::fs::read_to_string(request_path)
+            .map_err(|e| format!("Failed to read elevation request: {}", e))?;
+        let request: ElevationRequest = serde_json::from_str(&text)
+            .map_err(|e| format!("Invalid elevation request format: {}", e))?;
         let payload = crate::enumerate::scan();
         let wanted: std::collections::HashSet<String> = request.ids.into_iter().collect();
         let entries: Vec<FontEntry> = payload
@@ -300,9 +299,10 @@ pub fn elevation_response_path(request_path: &Path) -> std::path::PathBuf {
 }
 
 pub fn read_elevation_response(path: &Path) -> Result<DeleteReport, String> {
-    let text = std::fs::read_to_string(path).map_err(|e| format!("Elevated process returned no result: {}", e))?;
-    let parsed: ElevationResponse =
-        serde_json::from_str(&text).map_err(|e| format!("Invalid elevation result format: {}", e))?;
+    let text = std::fs::read_to_string(path)
+        .map_err(|e| format!("Elevated process returned no result: {}", e))?;
+    let parsed: ElevationResponse = serde_json::from_str(&text)
+        .map_err(|e| format!("Invalid elevation result format: {}", e))?;
     match (parsed.report, parsed.error) {
         (Some(report), _) => Ok(report),
         (None, Some(err)) => Err(err),

@@ -186,9 +186,15 @@ mod tests {
     fn embedded_pack_has_meta_and_entries() {
         // 用基准包校验仓库语言文件的完整性
         let (meta, entries) = parse(EMBEDDED);
-        assert_eq!(meta.get("languagename").map(String::as_str), Some("简体中文"));
+        assert_eq!(
+            meta.get("languagename").map(String::as_str),
+            Some("简体中文")
+        );
         assert_eq!(meta.get("languagecode").map(String::as_str), Some("zh-CN"));
-        assert_eq!(entries.get("list.colName").map(String::as_str), Some("字体名称"));
+        assert_eq!(
+            entries.get("list.colName").map(String::as_str),
+            Some("字体名称")
+        );
         assert_eq!(entries.get("app.name").map(String::as_str), Some("FontFox"));
     }
 

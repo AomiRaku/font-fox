@@ -11,19 +11,19 @@ pub mod enumerate;
 pub mod export;
 pub mod fontchange;
 pub mod i18n;
+pub mod inactive;
 pub mod langs;
 pub mod library;
 mod mica;
-pub mod inactive;
 pub mod mode;
 pub mod model;
-mod preview;
-mod restore_dialog;
 pub mod ownership;
-pub mod system_fonts;
 pub mod parse;
+mod preview;
 pub mod registry;
+mod restore_dialog;
 pub mod settings;
+pub mod system_fonts;
 pub mod theme;
 pub mod update;
 
@@ -40,11 +40,9 @@ pub fn run() {
         std::process::exit(code);
     }
 
-
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(AppState::default())
-
         .setup(|app| {
             // 上次会话中被 GDI 锁定的字体文件，在这里Retry清理。
             std::thread::spawn(delete::retry_pending);
@@ -52,7 +50,6 @@ pub fn run() {
             // 跟随系统「应用模式」：注册表变化时推给前端。
             theme::spawn_watcher(app.handle().clone());
             update::cleanup_stale_updates();
-
 
             Ok(())
         })
@@ -65,9 +62,9 @@ pub fn run() {
             commands::save_settings,
             commands::load_library,
             commands::save_library,
-commands::export_fonts,
-mica::mica_supported,
-mica::set_window_mica,
+            commands::export_fonts,
+            mica::mica_supported,
+            mica::set_window_mica,
             commands::app_info,
             commands::about,
             commands::reveal_path,
@@ -75,7 +72,6 @@ mica::set_window_mica,
             commands::system_theme,
             commands::load_language,
             commands::list_languages,
-
             commands::set_disable_mode,
             commands::font_extras,
             commands::render_preview,
@@ -160,7 +156,8 @@ fn unique_destination(dir: &std::path::Path, src: &std::path::Path) -> std::path
 
 /// 把指定文件移动到 `桌面\FontFox Uninstalled Fonts`，返回 (目录, 成功数量)。
 pub fn move_files_to_desktop(paths: &[String]) -> Result<(String, usize), String> {
-    let desktop = desktop_folder().ok_or_else(|| "Unable to locate the desktop folder".to_string())?;
+    let desktop =
+        desktop_folder().ok_or_else(|| "Unable to locate the desktop folder".to_string())?;
     let target_dir = desktop.join("FontFox Uninstalled Fonts");
     std::fs::create_dir_all(&target_dir)
         .map_err(|err| format!("Unable to create desktop folder: {err}"))?;

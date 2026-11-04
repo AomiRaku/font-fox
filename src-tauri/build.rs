@@ -26,7 +26,11 @@ fn copy_langs() {
     let Ok(out_dir) = std::env::var("OUT_DIR") else {
         return;
     };
-    let Some(profile_dir) = PathBuf::from(&out_dir).ancestors().nth(3).map(Path::to_path_buf) else {
+    let Some(profile_dir) = PathBuf::from(&out_dir)
+        .ancestors()
+        .nth(3)
+        .map(Path::to_path_buf)
+    else {
         return;
     };
     let dest = profile_dir.join("lang");

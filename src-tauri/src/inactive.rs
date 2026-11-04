@@ -7,8 +7,8 @@
 use std::collections::HashSet;
 
 use crate::model::{FontEntry, HiddenReport};
-use crate::system_fonts::normalize;
 use crate::registry::{read_inactive_fonts, write_inactive_fonts};
+use crate::system_fonts::normalize;
 
 /// `Inactive Fonts` 的当前内容 + 归一化后的查找集合。
 #[derive(Debug, Clone, Default)]
@@ -117,10 +117,7 @@ pub fn hide(entries: &[FontEntry]) -> Result<usize, String> {
 /// 把给定字体从隐藏列表移除。返回实际移除的条目数。
 pub fn show(entries: &[FontEntry]) -> Result<usize, String> {
     // 文件名键同样唯一，保留候选键里的全部条目
-    let keys: Vec<Vec<String>> = entries
-        .iter()
-        .map(InactiveSet::candidate_keys)
-        .collect();
+    let keys: Vec<Vec<String>> = entries.iter().map(InactiveSet::candidate_keys).collect();
 
     apply(|items| {
         let before = items.len();
@@ -186,7 +183,7 @@ mod tests {
             protected: false,
             protection: Protection::None,
             hidden: false,
-                requires_elevation: false,
+            requires_elevation: false,
             version: String::new(),
             copyright: String::new(),
         }
@@ -198,7 +195,11 @@ mod tests {
             raw: vec!["Arial Unicode MS".to_string()],
             keys: ["arial unicode ms".to_string()].into_iter().collect(),
         };
-        assert!(set.contains(&entry("Arial Unicode MS", "Arial Unicode MS", "ARIALUNI.TTF")));
+        assert!(set.contains(&entry(
+            "Arial Unicode MS",
+            "Arial Unicode MS",
+            "ARIALUNI.TTF"
+        )));
         assert!(!set.contains(&entry("Arial", "Arial", "arial.ttf")));
     }
 

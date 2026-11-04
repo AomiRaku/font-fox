@@ -13,7 +13,10 @@ fn main() {
             Err(error) => format!("error={error}"),
         };
         if let Some(dir) = std::env::var_os("TEMP") {
-            let _ = std::fs::write(std::path::Path::new(&dir).join("fontfox-restore.log"), message);
+            let _ = std::fs::write(
+                std::path::Path::new(&dir).join("fontfox-restore.log"),
+                message,
+            );
         }
         if result.is_err() {
             std::process::exit(1);

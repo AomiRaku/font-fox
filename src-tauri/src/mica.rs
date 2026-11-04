@@ -28,7 +28,11 @@ pub fn set_window_mica(window: Window, mode: String, dark: bool) -> Result<(), S
     if !is_supported() {
         return Err("Mica is only supported on Windows 11.".to_string());
     }
-    let effect = if dark { Effect::MicaDark } else { Effect::MicaLight };
+    let effect = if dark {
+        Effect::MicaDark
+    } else {
+        Effect::MicaLight
+    };
     window
         .set_effects(EffectsBuilder::new().effect(effect).build())
         .map_err(|err| format!("Failed to apply Mica: {err}"))

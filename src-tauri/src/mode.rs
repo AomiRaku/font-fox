@@ -47,7 +47,8 @@ pub fn records() -> Vec<DisabledRecord> {
 
 fn save(records: &[DisabledRecord]) -> Result<(), String> {
     let dir = quarantine_dir();
-    std::fs::create_dir_all(&dir).map_err(|err| format!("Unable to create disabled directory: {err}"))?;
+    std::fs::create_dir_all(&dir)
+        .map_err(|err| format!("Unable to create disabled directory: {err}"))?;
     let text = serde_json::to_string_pretty(records)
         .map_err(|err| format!("Unable to serialize disabled list: {err}"))?;
     std::fs::write(dir.join("disabled.json"), text)
@@ -93,7 +94,10 @@ pub fn disable(entries: &[FontEntry]) -> Result<usize, String> {
     let mut preflight: Vec<String> = Vec::new();
     for entry in entries {
         if entry.scope != Scope::User {
-            preflight.push(format!("“{}” is in system scope; dynamic mode does not support it", entry.family));
+            preflight.push(format!(
+                "“{}” is in system scope; dynamic mode does not support it",
+                entry.family
+            ));
             continue;
         }
         if !PathBuf::from(&entry.path).is_file() {
@@ -161,7 +165,10 @@ pub fn enable(ids: &[String]) -> Result<usize, String> {
         .cloned()
         .collect();
     if !missing.is_empty() {
-        return Err(format!("The following fonts are not in the isolation list: {}", missing.join("、")));
+        return Err(format!(
+            "The following fonts are not in the isolation list: {}",
+            missing.join("、")
+        ));
     }
 
     let mut applied: Vec<DisabledRecord> = Vec::new();
@@ -238,22 +245,42 @@ pub fn merged_entries(fonts: &mut Vec<FontEntry>) {
         } else {
             std::fs::metadata(&path).map(|meta| meta.len()).unwrap_or(0)
         };
+        // 隔离文件仍可解析；恢复可变字体轴、语言等元信息，避免停用后被当成普通字体。
+        let meta = if exists {
+            crate::parse::read_meta(&path, &record.display_name)
+        } else {
+            None
+        };
         fonts.push(FontEntry {
             id: record.id.clone(),
             value_name: record.value_name.clone(),
             display_name: record.display_name.clone(),
             family: record.family.clone(),
-            style: record.style.clone(),
-            full_name: record.display_name.clone(),
-            language: String::new(),
-            languages: Vec::new(),
-            variable: false,
-            weight_min: 0,
-            weight_max: 0,
-            monospace: false,
-            ligatures: false,
-            hinting: false,
-            axes: Vec::new(),
+            style: meta
+                .as_ref()
+                .map(|m| m.style.clone())
+                .filter(|style| !style.is_empty())
+                .unwrap_or_else(|| record.style.clone()),
+            full_name: meta
+                .as_ref()
+                .map(|m| m.full_name.clone())
+                .filter(|name| !name.is_empty())
+                .unwrap_or_else(|| record.display_name.clone()),
+            language: meta
+                .as_ref()
+                .map(|m| m.language.clone())
+                .unwrap_or_default(),
+            languages: meta
+                .as_ref()
+                .map(|m| m.languages.clone())
+                .unwrap_or_default(),
+            variable: meta.as_ref().map(|m| m.variable).unwrap_or(false),
+            weight_min: meta.as_ref().map(|m| m.weight_min).unwrap_or(0),
+            weight_max: meta.as_ref().map(|m| m.weight_max).unwrap_or(0),
+            monospace: meta.as_ref().map(|m| m.monospace).unwrap_or(false),
+            ligatures: meta.as_ref().map(|m| m.ligatures).unwrap_or(false),
+            hinting: meta.as_ref().map(|m| m.hinting).unwrap_or(false),
+            axes: meta.as_ref().map(|m| m.axes.clone()).unwrap_or_default(),
             scope: Scope::User,
             file_name: path
                 .file_name()
@@ -263,14 +290,23 @@ pub fn merged_entries(fonts: &mut Vec<FontEntry>) {
             exists,
             size,
             added_at: 0,
-            format: "Unknown".to_string(),
-            families: Vec::new(),
+            format: meta
+                .as_ref()
+                .map(|m| m.format.clone())
+                .unwrap_or_else(|| "Unknown".to_string()),
+            families: meta
+                .as_ref()
+                .map(|m| m.families.clone())
+                .unwrap_or_default(),
             protected: false,
             protection: crate::model::Protection::None,
             hidden: true,
-                requires_elevation: false,
-            version: String::new(),
-            copyright: String::new(),
+            requires_elevation: false,
+            version: meta.as_ref().map(|m| m.version.clone()).unwrap_or_default(),
+            copyright: meta
+                .as_ref()
+                .map(|m| m.copyright.clone())
+                .unwrap_or_default(),
         });
     }
 }

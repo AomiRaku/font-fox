@@ -5,9 +5,9 @@
 //!
 //! 用 `ttf-parser` 做纯解析，不写回、不修改任何字体文件。
 
+use memmap2::Mmap;
 use std::fs::File;
 use std::path::Path;
-use memmap2::Mmap;
 
 use ttf_parser::{name_id, Face, PlatformId};
 
@@ -252,9 +252,9 @@ fn format_of(path: &Path, data: &[u8]) -> String {
 /// GSUB 的 featureList 里是否包含指定标签。
 fn has_hinting(face: &Face) -> bool {
     let raw = face.raw_face();
-    let has_program = [b"fpgm", b"prep"].iter().any(|tag| {
-        raw.table(ttf_parser::Tag::from_bytes(*tag)).is_some()
-    });
+    let has_program = [b"fpgm", b"prep"]
+        .iter()
+        .any(|tag| raw.table(ttf_parser::Tag::from_bytes(*tag)).is_some());
     if !has_program {
         return false;
     }

@@ -36,7 +36,10 @@ fn parse_ini(text: &str) -> Vec<(String, String)> {
     let mut out = Vec::new();
     for line in text.lines() {
         let line = line.trim();
-        if line.is_empty() || line.starts_with('[') || line.starts_with('#') || line.starts_with(';')
+        if line.is_empty()
+            || line.starts_with('[')
+            || line.starts_with('#')
+            || line.starts_with(';')
         {
             continue;
         }
@@ -98,7 +101,12 @@ pub fn load() -> Settings {
     if let Some(v) = entry(&entries, "MicaMode") {
         settings.mica_mode = v.to_string();
     } else if let Some(v) = entry(&entries, "SidebarMica") {
-        settings.mica_mode = if v.eq_ignore_ascii_case("true") { "sidebar" } else { "off" }.to_string();
+        settings.mica_mode = if v.eq_ignore_ascii_case("true") {
+            "sidebar"
+        } else {
+            "off"
+        }
+        .to_string();
     }
     if let Some(v) = entry(&entries, "DisableMode") {
         settings.disable_mode = v.to_string();

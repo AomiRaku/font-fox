@@ -175,7 +175,13 @@ mod tests {
 
     #[test]
     fn protects_arial() {
-        let p = evaluate(Scope::System, false, "Arial.ttf", &["Arial".to_string()], false);
+        let p = evaluate(
+            Scope::System,
+            false,
+            "Arial.ttf",
+            &["Arial".to_string()],
+            false,
+        );
         assert_eq!(p, Protection::System);
     }
 
@@ -221,7 +227,13 @@ mod tests {
 
     #[test]
     fn user_scope_is_never_protected() {
-        let p = evaluate(Scope::User, true, "Arial.ttf", &["Arial".to_string()], false);
+        let p = evaluate(
+            Scope::User,
+            true,
+            "Arial.ttf",
+            &["Arial".to_string()],
+            false,
+        );
         assert_eq!(p, Protection::None);
     }
 

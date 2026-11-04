@@ -133,7 +133,7 @@ pub struct FontEntry {
 #[serde(rename_all = "camelCase")]
 pub struct FontListPayload {
     pub fonts: Vec<FontEntry>,
-      pub locked_files: Vec<String>,
+    pub locked_files: Vec<String>,
 }
 
 /// 隐藏 / 显示操作的结果。
