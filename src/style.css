@@ -55,7 +55,7 @@
   --fs-title: 19px;
 
   /* 字体：不打包，全部跟随系统 */
-  --ui-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ui-font: "Noto Sans", "Noto Sans SC", "Noto Sans TC", "Noto Sans CJK", "Noto Sans CJK SC", "Noto Sans CJK TC", "Microsoft YaHei UI", "Microsoft YaHei", "Microsoft JhengHei", "Segoe UI", system-ui, sans-serif;
   --mono-font: ui-monospace, "Cascadia Code", Consolas, monospace;
 
   /* 列宽：表头与行共用 */
@@ -3538,6 +3538,7 @@ html[data-theme="dark"] .about__wordmark--dark {
   gap: var(--sp-2);
   font-family: var(--ui-font);
   font-size: var(--fs-base);
+  font-weight: 600;
   color: var(--ink-soft);
   cursor: default;
 }
