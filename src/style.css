@@ -3538,7 +3538,7 @@ html[data-theme="dark"] .about__wordmark--dark {
   gap: var(--sp-2);
   font-family: var(--ui-font);
   font-size: var(--fs-base);
-  color: var(--ink-soft);
+  color: var(--ink);
   cursor: default;
 }
 
